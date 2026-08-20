@@ -46,3 +46,25 @@ Notes:
 ## Verdict
 Same architecture as searoute-ts transfers 1:1. Europe-first bundle, world via CDN.
 No blocker found.
+
+## Corridor spike — 2026-08-20 (same day)
+
+Rhine-Alpine corridor (bbox 44–52.5N, 4–10.6E: NL, W Germany, CH, N Italy),
+`railway=rail` + `usage=main` via Overpass: 148 MB raw, 116,520 ways.
+
+**Graph built and routing verified** (`build-graph.py`): split ways at shared
+nodes → 115,532 nodes / 117,999 edges. Dijkstra results vs real-world rail:
+
+| Route | Computed | Real-world |
+|---|---|---|
+| Rotterdam → Genoa | 1,183 km | ~1,200 km (Gotthard) |
+| Rotterdam → Basel | 709 km | ~700 km |
+| Cologne → Milan | 840 km | ~850 km |
+
+Network is **connected across 4 borders** including the Gotthard base tunnel.
+Route geometry exported to `route-rotterdam-genoa.geojson`.
+
+Simplified corridor linework: ~13 MB minified / ~1.5 MB gzip — before parallel-
+track collapse and edge-level (not way-level) geometry storage. Confirms the
+Europe estimate. **Architecture proven end-to-end; next step is the real
+pipeline + TS library scaffold.**
