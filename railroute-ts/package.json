@@ -1,0 +1,18 @@
+{
+  "name": "railroute-ts",
+  "version": "0.0.0",
+  "scripts": {
+    "test": "vitest run",
+    "build": "tsc"
+  },
+  "keywords": [],
+  "author": "Mayur Rawte",
+  "license": "MIT",
+  "description": "Shortest rail route between two points. TypeScript library powered by the OpenStreetMap rail network. Returns GeoJSON.",
+  "devDependencies": {
+    "@types/node": "^26.2.0",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.11"
+  },
+  "type": "module"
+}
