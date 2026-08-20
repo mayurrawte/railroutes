@@ -64,7 +64,7 @@ nodes → 115,532 nodes / 117,999 edges. Dijkstra results vs real-world rail:
 Network is **connected across 4 borders** including the Gotthard base tunnel.
 Route geometry exported to `route-rotterdam-genoa.geojson`.
 
-Simplified corridor linework: ~13 MB minified / ~1.5 MB gzip — before parallel-
+Simplified corridor linework: 4.4 MB minified / 1.16 MB gzip — before parallel-
 track collapse and edge-level (not way-level) geometry storage. Confirms the
 Europe estimate. **Architecture proven end-to-end; next step is the real
 pipeline + TS library scaffold.**
