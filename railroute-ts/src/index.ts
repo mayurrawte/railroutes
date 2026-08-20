@@ -93,3 +93,16 @@ export function railRoute(origin: Position, destination: Position, options: Rail
   if (options.speedKmh) properties.durationHours = result.km / options.speedKmh;
   return { type: 'Feature', properties, geometry: { type: 'LineString', coordinates } };
 }
+
+/** Fetch a rail network (GeoJSON FeatureCollection of LineStrings) at runtime. */
+export async function loadNetwork(url: string): Promise<RailNetwork> {
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error(`loadNetwork: ${url} responded ${res.status} ${res.statusText}`.trim());
+  }
+  const data = (await res.json()) as RailNetwork;
+  if (data?.type !== 'FeatureCollection' || !Array.isArray(data.features)) {
+    throw new Error('loadNetwork: payload is not a GeoJSON FeatureCollection');
+  }
+  return data;
+}

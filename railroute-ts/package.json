@@ -5,7 +5,22 @@
     "test": "vitest run",
     "build": "tsc"
   },
-  "keywords": [],
+  "keywords": [
+    "rail-route",
+    "railroute",
+    "rail-distance",
+    "train-route",
+    "railway-routing",
+    "rail-network",
+    "openstreetmap",
+    "geojson",
+    "dijkstra",
+    "logistics",
+    "freight",
+    "multimodal",
+    "shortest-path",
+    "typescript"
+  ],
   "author": "Mayur Rawte",
   "license": "MIT",
   "description": "Shortest rail route between two points. TypeScript library powered by the OpenStreetMap rail network. Returns GeoJSON.",
@@ -14,5 +29,26 @@
     "typescript": "^7.0.2",
     "vitest": "^4.1.11"
   },
-  "type": "module"
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./networks/corridor": {
+      "types": "./dist/networks/corridor.d.ts",
+      "import": "./dist/networks/corridor.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "types": "./dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mayurrawte/railroutes.git"
+  }
 }

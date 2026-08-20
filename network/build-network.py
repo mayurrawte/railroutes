@@ -65,6 +65,40 @@ for start in adj:
 main = max(comps, key=len)
 kept = [e for e in edges if e[0] in main]
 
+# contract chains: walk from junction/endpoint nodes (degree != 2) through
+# degree-2 nodes, merging edge geometries into one long edge
+deg = defaultdict(int)
+for a, b, _ in kept:
+    deg[a] += 1; deg[b] += 1
+by_node = defaultdict(list)
+for i, (a, b, _) in enumerate(kept):
+    by_node[a].append(i); by_node[b].append(i)
+used = [False] * len(kept)
+contracted = []
+anchors = [n for n in deg if deg[n] != 2]
+for start in anchors:
+    for ei in by_node[start]:
+        if used[ei]: continue
+        a, b, coords = kept[ei]
+        used[ei] = True
+        cur = b if a == start else a
+        chain = coords if a == start else coords[::-1]
+        while deg[cur] == 2:
+            nxt = [j for j in by_node[cur] if not used[j]]
+            if not nxt: break
+            j = nxt[0]
+            na, nb, nc = kept[j]
+            used[j] = True
+            seg = nc if na == cur else nc[::-1]
+            chain = chain + seg[1:]
+            cur = nb if na == cur else na
+        contracted.append((start, cur, chain))
+# pure degree-2 loops (rings) never touch an anchor; keep them as-is
+for i, e in enumerate(kept):
+    if not used[i]:
+        contracted.append(e)
+kept = contracted
+
 feats = []
 for a, b, coords in kept:
     simp = rdp(coords, 0.001)
