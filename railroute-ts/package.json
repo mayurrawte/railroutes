@@ -65,5 +65,8 @@
   },
   "sideEffects": [
     "**/stations/*.js"
-  ]
+  ],
+  "engines": {
+    "node": ">=20"
+  }
 }
