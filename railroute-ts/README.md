@@ -36,6 +36,8 @@ railRoute('5100065', '8101003', { network: EUROPE_NETWORK });  // Warszawa Centr
 - 🗺️ **Returns GeoJSON** — drop straight into Leaflet, Mapbox, deck.gl, MapLibre.
 - 🚉 Snaps origin/destination to the nearest point on the network.
 - ⏱️ ETA from average speed.
+- 🛤️ K-shortest alternatives — `railRouteAlternatives(a, b, { k: 3 })` (Yen's algorithm).
+- 🧭 Multi-leg itineraries — `railRouteMulti([a, b, c])`, per-leg distances in `properties.legs`.
 - 🧊 Zero runtime dependencies.
 
 ## Roadmap

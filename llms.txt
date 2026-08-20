@@ -37,6 +37,10 @@ import 'railroute-ts/stations/corridor';  // registers 3,416 corridor stations
 railRoute('8400530', '8301700', { network: CORRIDOR_NETWORK }); // Rotterdam Centraal → Milano Centrale
 railRoute('Basel SBB', 'Milano Centrale', { network: CORRIDOR_NETWORK });
 
+// K-shortest alternatives (Yen's) and multi-leg itineraries
+railRouteAlternatives(a, b, { network: EUROPE_NETWORK, k: 3 }); // Feature[], sorted by length
+railRouteMulti([a, b, c], { network: EUROPE_NETWORK });         // one Feature, properties.legs = per-leg km
+
 // origin/destination snap to the nearest network node automatically;
 // disconnected points throw NoRouteError; unknown station ids throw
 ```

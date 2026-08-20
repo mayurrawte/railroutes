@@ -18,6 +18,7 @@ export interface RailRouteProperties {
   length: number;
   units: 'kilometers';
   durationHours?: number;
+  legs?: number[];
   [k: string]: unknown;
 }
 

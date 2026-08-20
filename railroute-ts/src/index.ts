@@ -91,7 +91,14 @@ class MinHeap {
   }
 }
 
-function dijkstra(g: Graph, src: string, dst: string): { km: number; path: string[] } | null {
+const edgeKey = (a: string, b: string) => (a < b ? `${a}|${b}` : `${b}|${a}`);
+
+function dijkstra(
+  g: Graph,
+  src: string,
+  dst: string,
+  banned?: Set<string>,
+): { km: number; path: string[] } | null {
   const dist = new Map<string, number>([[src, 0]]);
   const prev = new Map<string, string>();
   const pq = new MinHeap();
@@ -103,6 +110,7 @@ function dijkstra(g: Graph, src: string, dst: string): { km: number; path: strin
     if (done.has(u)) continue;
     done.add(u);
     for (const { to, km } of g.adj.get(u) ?? []) {
+      if (banned && banned.has(edgeKey(u, to))) continue;
       const nd = du + km;
       if (nd < (dist.get(to) ?? Infinity)) {
         dist.set(to, nd);
@@ -182,4 +190,113 @@ export async function loadNetwork(url: string): Promise<RailNetwork> {
     throw new Error('loadNetwork: payload is not a GeoJSON FeatureCollection');
   }
   return data;
+}
+
+function toFeature(
+  g: Graph,
+  km: number,
+  path: string[],
+  options: { speedKmh?: number },
+): RailRouteFeature {
+  const properties: RailRouteFeature['properties'] = { length: km, units: 'kilometers' };
+  if (options.speedKmh) properties.durationHours = km / options.speedKmh;
+  return {
+    type: 'Feature',
+    properties,
+    geometry: { type: 'LineString', coordinates: path.map((k) => g.coord.get(k)!) },
+  };
+}
+
+export interface RailRouteAlternativesOptions extends RailRouteOptions {
+  /** Number of routes to return (baseline + up to k-1 alternatives). Default 3. */
+  k?: number;
+}
+
+/**
+ * K-shortest routes (Yen's algorithm): the baseline plus up to k-1 distinct
+ * alternatives, sorted by length. Returns fewer when the network offers fewer.
+ */
+export function railRouteAlternatives(
+  origin: Position | string,
+  destination: Position | string,
+  options: RailRouteAlternativesOptions,
+): RailRouteFeature[] {
+  const k = options.k ?? 3;
+  const o = typeof origin === 'string' ? resolveStation(origin) : origin;
+  const d = typeof destination === 'string' ? resolveStation(destination) : destination;
+  const g = buildGraph(options.network);
+  const src = snap(g, o);
+  const dst = snap(g, d);
+
+  const best = dijkstra(g, src, dst);
+  if (!best) throw new NoRouteError();
+
+  const accepted: Array<{ km: number; path: string[] }> = [best];
+  const candidates: Array<{ km: number; path: string[] }> = [];
+  const seen = new Set<string>([best.path.join('>')]);
+
+  while (accepted.length < k) {
+    const prev = accepted[accepted.length - 1];
+    for (let i = 0; i < prev.path.length - 1; i++) {
+      const spur = prev.path[i];
+      const rootPath = prev.path.slice(0, i + 1);
+      const banned = new Set<string>();
+      for (const a of accepted) {
+        if (a.path.length > i && a.path.slice(0, i + 1).join('>') === rootPath.join('>')) {
+          banned.add(edgeKey(a.path[i], a.path[i + 1]));
+        }
+      }
+      // ban revisiting root nodes (except the spur itself) via their edges
+      const rootSet = new Set(rootPath.slice(0, -1));
+      for (const n of rootSet) for (const { to } of g.adj.get(n) ?? []) banned.add(edgeKey(n, to));
+
+      const spurResult = dijkstra(g, spur, dst, banned);
+      if (!spurResult) continue;
+      const path = [...rootPath.slice(0, -1), ...spurResult.path];
+      const key = path.join('>');
+      if (seen.has(key)) continue;
+      seen.add(key);
+      let km = spurResult.km;
+      for (let j = 0; j < i; j++) {
+        const edges = g.adj.get(prev.path[j]) ?? [];
+        km += edges.find((e) => e.to === prev.path[j + 1])?.km ?? 0;
+      }
+      candidates.push({ km, path });
+    }
+    if (!candidates.length) break;
+    candidates.sort((a, b) => a.km - b.km);
+    accepted.push(candidates.shift()!);
+  }
+
+  return accepted
+    .sort((a, b) => a.km - b.km)
+    .map((r) => toFeature(g, r.km, r.path, options));
+}
+
+/**
+ * Multi-leg itinerary: routes through every waypoint in order and returns one
+ * continuous Feature with per-leg distances in properties.legs.
+ */
+export function railRouteMulti(
+  points: Array<Position | string>,
+  options: RailRouteOptions,
+): RailRouteFeature {
+  if (points.length < 2) throw new Error('railRouteMulti needs at least two points');
+  const legs: number[] = [];
+  const coordinates: Position[] = [];
+  let total = 0;
+  for (let i = 0; i < points.length - 1; i++) {
+    const leg = railRoute(points[i], points[i + 1], options);
+    legs.push(leg.properties.length);
+    total += leg.properties.length;
+    const c = leg.geometry.coordinates;
+    coordinates.push(...(i === 0 ? c : c.slice(1)));
+  }
+  const properties: RailRouteFeature['properties'] = {
+    length: total,
+    units: 'kilometers',
+    legs,
+  };
+  if (options.speedKmh) properties.durationHours = total / options.speedKmh;
+  return { type: 'Feature', properties, geometry: { type: 'LineString', coordinates } };
 }
