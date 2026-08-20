@@ -22,7 +22,11 @@ interface Graph {
   coord: Map<string, Position>;
 }
 
+const graphCache = new WeakMap<RailNetwork, Graph>();
+
 function buildGraph(network: RailNetwork): Graph {
+  const cached = graphCache.get(network);
+  if (cached) return cached;
   const adj: Graph['adj'] = new Map();
   const coord: Graph['coord'] = new Map();
   const link = (a: Position, b: Position) => {
@@ -38,7 +42,9 @@ function buildGraph(network: RailNetwork): Graph {
     const c = f.geometry.coordinates;
     for (let i = 0; i < c.length - 1; i++) link(c[i], c[i + 1]);
   }
-  return { adj, coord };
+  const g = { adj, coord };
+  graphCache.set(network, g);
+  return g;
 }
 
 function snap(g: Graph, p: Position): string {
@@ -50,17 +56,49 @@ function snap(g: Graph, p: Position): string {
   return best;
 }
 
+class MinHeap {
+  private a: Array<[number, string]> = [];
+  get size() { return this.a.length; }
+  push(item: [number, string]) {
+    const a = this.a;
+    a.push(item);
+    let i = a.length - 1;
+    while (i > 0) {
+      const p = (i - 1) >> 1;
+      if (a[p][0] <= a[i][0]) break;
+      [a[p], a[i]] = [a[i], a[p]];
+      i = p;
+    }
+  }
+  pop(): [number, string] {
+    const a = this.a;
+    const top = a[0];
+    const last = a.pop()!;
+    if (a.length) {
+      a[0] = last;
+      let i = 0;
+      for (;;) {
+        const l = 2 * i + 1, r = l + 1;
+        let m = i;
+        if (l < a.length && a[l][0] < a[m][0]) m = l;
+        if (r < a.length && a[r][0] < a[m][0]) m = r;
+        if (m === i) break;
+        [a[m], a[i]] = [a[i], a[m]];
+        i = m;
+      }
+    }
+    return top;
+  }
+}
+
 function dijkstra(g: Graph, src: string, dst: string): { km: number; path: string[] } | null {
   const dist = new Map<string, number>([[src, 0]]);
   const prev = new Map<string, string>();
-  // simple binary-heap-free priority queue: array scan is fine for v0 test sizes;
-  // replaced by a heap when the bundled network lands (perf test will force it)
-  const pq: Array<[number, string]> = [[0, src]];
+  const pq = new MinHeap();
+  pq.push([0, src]);
   const done = new Set<string>();
-  while (pq.length) {
-    let mi = 0;
-    for (let i = 1; i < pq.length; i++) if (pq[i][0] < pq[mi][0]) mi = i;
-    const [du, u] = pq.splice(mi, 1)[0];
+  while (pq.size) {
+    const [du, u] = pq.pop();
     if (u === dst) break;
     if (done.has(u)) continue;
     done.add(u);
