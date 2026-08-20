@@ -39,7 +39,19 @@
       "types": "./dist/networks/corridor.d.ts",
       "import": "./dist/networks/corridor.js"
     },
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./stations/corridor": {
+      "types": "./dist/stations/corridor.d.ts",
+      "import": "./dist/stations/corridor.js"
+    },
+    "./networks/europe": {
+      "types": "./dist/networks/europe.d.ts",
+      "import": "./dist/networks/europe.js"
+    },
+    "./stations/europe": {
+      "types": "./dist/stations/europe.d.ts",
+      "import": "./dist/stations/europe.js"
+    }
   },
   "files": [
     "dist",
@@ -50,5 +62,8 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/mayurrawte/railroutes.git"
-  }
+  },
+  "sideEffects": [
+    "**/stations/*.js"
+  ]
 }

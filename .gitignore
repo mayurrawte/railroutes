@@ -1,3 +1,8 @@
 node_modules/
 dist/
 network/corridor-raw.json
+network/europe-raw.json
+network/europe-tiles/
+network/europe-stations-raw.json
+network/corridor-stations.json
+network/*.log

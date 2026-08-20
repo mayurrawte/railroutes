@@ -117,10 +117,47 @@ function dijkstra(g: Graph, src: string, dst: string): { km: number; path: strin
   return { km: dist.get(dst)!, path: path.reverse() };
 }
 
-export function railRoute(origin: Position, destination: Position, options: RailRouteOptions): RailRouteFeature {
+
+export interface Station {
+  code: string;
+  name: string;
+  coord: Position;
+}
+
+const stationsByCode = new Map<string, Station>();
+const stationsByName = new Map<string, Station>();
+
+/** Register stations so railRoute can accept their codes/names as endpoints. */
+export function registerStations(stations: Station[]): void {
+  for (const s of stations) {
+    stationsByCode.set(s.code, s);
+    stationsByName.set(s.name.toLowerCase(), s);
+  }
+}
+
+function stationFor(id: string): Station | undefined {
+  return stationsByCode.get(id) ?? stationsByName.get(id.toLowerCase());
+}
+
+/** Resolve a station code or (case-insensitive) name to coordinates. */
+export function resolveStation(id: string): Position {
+  const s = stationFor(id);
+  if (!s) throw new Error(`Unknown station: ${id}`);
+  return s.coord;
+}
+
+export function railRoute(
+  origin: Position | string,
+  destination: Position | string,
+  options: RailRouteOptions,
+): RailRouteFeature {
+  const originStation = typeof origin === 'string' ? stationFor(origin) : undefined;
+  const destinationStation = typeof destination === 'string' ? stationFor(destination) : undefined;
+  const o = typeof origin === 'string' ? resolveStation(origin) : origin;
+  const d = typeof destination === 'string' ? resolveStation(destination) : destination;
   const g = buildGraph(options.network);
-  const src = snap(g, origin);
-  const dst = snap(g, destination);
+  const src = snap(g, o);
+  const dst = snap(g, d);
   const result = dijkstra(g, src, dst);
   if (!result) throw new NoRouteError();
   const coordinates = result.path.map((k) => g.coord.get(k)!);
@@ -129,6 +166,8 @@ export function railRoute(origin: Position, destination: Position, options: Rail
     units: 'kilometers',
   };
   if (options.speedKmh) properties.durationHours = result.km / options.speedKmh;
+  if (originStation) properties.originStation = originStation.name;
+  if (destinationStation) properties.destinationStation = destinationStation.name;
   return { type: 'Feature', properties, geometry: { type: 'LineString', coordinates } };
 }
 

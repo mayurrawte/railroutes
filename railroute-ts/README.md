@@ -7,13 +7,15 @@
 > Sibling of [searoute-ts](https://github.com/mayurrawte/searoute-ts) — together
 > they cover multimodal (sea + rail) freight distance.
 
-**Status: v0 / pre-release.** Bundled network covers the Rhine-Alpine corridor
-(Netherlands, western Germany, Switzerland, northern Italy). Europe-wide
-network is in progress.
+**Status: v0 / pre-release.** Two bundled networks: **Europe-wide** (35–72N,
+10W–32E — 30,628 edges, 1.25 MB gzipped) and the lighter Rhine-Alpine corridor.
+Verified against real itineraries: Lisbon→Warsaw, Stockholm→Rome, London→Vienna
+via the Channel Tunnel.
 
 ```ts
 import { railRoute } from 'railroute-ts';
-import { CORRIDOR_NETWORK } from 'railroute-ts/networks/corridor';
+import { EUROPE_NETWORK } from 'railroute-ts/networks/europe';    // all of Europe
+import { CORRIDOR_NETWORK } from 'railroute-ts/networks/corridor'; // lighter: Rhine-Alpine only
 
 const route = railRoute([4.47, 51.92], [8.92, 44.41], { network: CORRIDOR_NETWORK });
 // Rotterdam → Genoa via the Gotthard base tunnel
@@ -21,6 +23,11 @@ const route = railRoute([4.47, 51.92], [8.92, 44.41], { network: CORRIDOR_NETWOR
 
 railRoute(rotterdam, genoa, { network: CORRIDOR_NETWORK, speedKmh: 80 });
 // → properties.durationHours ≈ 14.8
+
+// station codes (UIC) or names, via the bundled stations datasets
+import 'railroute-ts/stations/europe';   // 12,886 stations (OSM uic_ref)
+railRoute('London St. Pancras International', 'Wien Hauptbahnhof', { network: EUROPE_NETWORK });
+railRoute('5100065', '8101003', { network: EUROPE_NETWORK });  // Warszawa Centralna → Wien Hbf
 ```
 
 ## Why
@@ -33,7 +40,7 @@ railRoute(rotterdam, genoa, { network: CORRIDOR_NETWORK, speedKmh: 80 });
 
 ## Roadmap
 
-- Europe-wide network (bundled) + world via `loadNetwork(url)`
+- World network via `loadNetwork(url)` from CDN
 - Station codes (UIC) as inputs, like searoute-ts's UN/LOCODE ports
 - Gauge-break and electrification awareness
 - Train-ferry links

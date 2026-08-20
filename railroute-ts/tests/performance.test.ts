@@ -6,13 +6,18 @@ const ROTTERDAM: [number, number] = [4.47, 51.92];
 const GENOA: [number, number] = [8.92, 44.41];
 
 describe('performance', () => {
-  it('caches the built graph: 10 repeat calls take well under 1s total', () => {
-    railRoute(ROTTERDAM, GENOA, { network: CORRIDOR_NETWORK }); // warm
+  it('caches the built graph: 10 warm calls cost less than 5 cold calls', () => {
+    // a structural clone is a different object -> cache miss -> cold build
+    const coldNetwork = { ...CORRIDOR_NETWORK, features: [...CORRIDOR_NETWORK.features] };
     const t0 = performance.now();
-    for (let i = 0; i < 10; i++) {
-      railRoute(ROTTERDAM, GENOA, { network: CORRIDOR_NETWORK });
-    }
-    const elapsed = performance.now() - t0;
-    expect(elapsed).toBeLessThan(300);
+    railRoute(ROTTERDAM, GENOA, { network: coldNetwork });
+    const cold = performance.now() - t0;
+
+    railRoute(ROTTERDAM, GENOA, { network: CORRIDOR_NETWORK }); // warm the cache
+    const t1 = performance.now();
+    for (let i = 0; i < 10; i++) railRoute(ROTTERDAM, GENOA, { network: CORRIDOR_NETWORK });
+    const warm10 = performance.now() - t1;
+
+    expect(warm10).toBeLessThan(cold * 5);
   });
 });

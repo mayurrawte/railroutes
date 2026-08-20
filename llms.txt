@@ -32,8 +32,13 @@ railRoute(a, b, { network: CORRIDOR_NETWORK, speedKmh: 80 });
 const net = await loadNetwork('https://example.com/rail-europe.json');
 railRoute(a, b, { network: net });
 
+// station codes (UIC) or case-insensitive names as endpoints
+import 'railroute-ts/stations/corridor';  // registers 3,416 corridor stations
+railRoute('8400530', '8301700', { network: CORRIDOR_NETWORK }); // Rotterdam Centraal → Milano Centrale
+railRoute('Basel SBB', 'Milano Centrale', { network: CORRIDOR_NETWORK });
+
 // origin/destination snap to the nearest network node automatically;
-// disconnected points throw NoRouteError
+// disconnected points throw NoRouteError; unknown station ids throw
 ```
 
 ## For AI agents
