@@ -10,9 +10,10 @@ This monorepo holds:
 | [`railroute-ts/`](railroute-ts/) | The library — `railRoute(origin, destination)` → GeoJSON `Feature<LineString>` with distance and ETA |
 | [`network/`](network/) | The data pipeline — raw OSM rail ways → compact, routable network assets (junction splitting, chain contraction, geometry simplification) |
 
-**Status: v0 — [on npm](https://www.npmjs.com/package/railroute-ts)** (`npm install railroute-ts`). The bundled Europe network covers the Rhine-Alpine freight corridor
-(Rotterdam → Genoa: Netherlands, western Germany, Switzerland, northern Italy).
-Verified against real-world rail distances:
+**Status: v0 — [on npm](https://www.npmjs.com/package/railroute-ts)** (`npm install railroute-ts`).
+Two bundled networks: **Europe-wide** (35–72N, 10W–32E; verified Lisbon→Warsaw,
+Stockholm→Rome, London→Vienna via the Channel Tunnel) and the lighter
+**Rhine-Alpine corridor**. Verified against real-world rail distances:
 
 | Route | Computed | Real-world |
 |---|---|---|
