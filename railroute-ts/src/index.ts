@@ -17,8 +17,16 @@ function distKm(a: Position, b: Position): number {
 
 const key = (p: Position) => `${p[0]},${p[1]}`;
 
+interface Edge {
+  to: string;
+  km: number;
+  gauge?: string;
+  electrified?: boolean;
+  ferry?: boolean;
+}
+
 interface Graph {
-  adj: Map<string, Array<{ to: string; km: number }>>;
+  adj: Map<string, Edge[]>;
   coord: Map<string, Position>;
 }
 
@@ -29,18 +37,22 @@ function buildGraph(network: RailNetwork): Graph {
   if (cached) return cached;
   const adj: Graph['adj'] = new Map();
   const coord: Graph['coord'] = new Map();
-  const link = (a: Position, b: Position) => {
-    const ka = key(a), kb = key(b);
-    coord.set(ka, a); coord.set(kb, b);
-    const km = distKm(a, b);
-    if (!adj.has(ka)) adj.set(ka, []);
-    if (!adj.has(kb)) adj.set(kb, []);
-    adj.get(ka)!.push({ to: kb, km });
-    adj.get(kb)!.push({ to: ka, km });
-  };
   for (const f of network.features) {
+    const props = f.properties ?? {};
+    const gauge = typeof props.gauge === 'string' ? props.gauge : undefined;
+    const electrified = typeof props.electrified === 'boolean' ? props.electrified : undefined;
+    const ferry = props.ferry === true ? true : undefined;
     const c = f.geometry.coordinates;
-    for (let i = 0; i < c.length - 1; i++) link(c[i], c[i + 1]);
+    for (let i = 0; i < c.length - 1; i++) {
+      const a = c[i], b = c[i + 1];
+      const ka = key(a), kb = key(b);
+      coord.set(ka, a); coord.set(kb, b);
+      const km = distKm(a, b);
+      if (!adj.has(ka)) adj.set(ka, []);
+      if (!adj.has(kb)) adj.set(kb, []);
+      adj.get(ka)!.push({ to: kb, km, gauge, electrified, ferry });
+      adj.get(kb)!.push({ to: ka, km, gauge, electrified, ferry });
+    }
   }
   const g = { adj, coord };
   graphCache.set(network, g);
@@ -56,10 +68,12 @@ function snap(g: Graph, p: Position): string {
   return best;
 }
 
+const edgeKey = (a: string, b: string) => (a < b ? `${a}|${b}` : `${b}|${a}`);
+
 class MinHeap {
-  private a: Array<[number, string]> = [];
+  private a: Array<[number, string, string]> = []; // [cost, node, gauge-state]
   get size() { return this.a.length; }
-  push(item: [number, string]) {
+  push(item: [number, string, string]) {
     const a = this.a;
     a.push(item);
     let i = a.length - 1;
@@ -70,7 +84,7 @@ class MinHeap {
       i = p;
     }
   }
-  pop(): [number, string] {
+  pop(): [number, string, string] {
     const a = this.a;
     const top = a[0];
     const last = a.pop()!;
@@ -91,40 +105,63 @@ class MinHeap {
   }
 }
 
-const edgeKey = (a: string, b: string) => (a < b ? `${a}|${b}` : `${b}|${a}`);
+interface RouteConstraints {
+  banned?: Set<string>;
+  electrifiedOnly?: boolean;
+  noFerries?: boolean;
+  gaugePenaltyKm?: number;
+}
 
 function dijkstra(
   g: Graph,
   src: string,
   dst: string,
-  banned?: Set<string>,
+  c: RouteConstraints = {},
 ): { km: number; path: string[] } | null {
-  const dist = new Map<string, number>([[src, 0]]);
-  const prev = new Map<string, string>();
+  const penalty = c.gaugePenaltyKm ?? 0;
+  // state = node + (last gauge, only when a penalty makes it matter)
+  const sk = (node: string, gauge: string) => (penalty ? `${node} ${gauge}` : node);
+  const dist = new Map<string, number>([[sk(src, ''), 0]]);
+  const prev = new Map<string, string>(); // state -> state
+  const nodeOf = new Map<string, string>([[sk(src, ''), src]]);
   const pq = new MinHeap();
-  pq.push([0, src]);
+  pq.push([0, src, '']);
   const done = new Set<string>();
+  let final: string | null = null;
   while (pq.size) {
-    const [du, u] = pq.pop();
-    if (u === dst) break;
-    if (done.has(u)) continue;
-    done.add(u);
-    for (const { to, km } of g.adj.get(u) ?? []) {
-      if (banned && banned.has(edgeKey(u, to))) continue;
-      const nd = du + km;
-      if (nd < (dist.get(to) ?? Infinity)) {
-        dist.set(to, nd);
-        prev.set(to, u);
-        pq.push([nd, to]);
+    const [du, u, ug] = pq.pop();
+    const us = sk(u, ug);
+    if (u === dst) { final = us; break; }
+    if (done.has(us)) continue;
+    done.add(us);
+    for (const e of g.adj.get(u) ?? []) {
+      if (c.banned && c.banned.has(edgeKey(u, e.to))) continue;
+      if (c.electrifiedOnly && e.electrified !== true) continue;
+      if (c.noFerries && e.ferry) continue;
+      const eg = e.gauge ?? ug; // untagged edges inherit, never break gauge
+      let cost = e.km;
+      if (penalty && ug && e.gauge && e.gauge !== ug) cost += penalty;
+      const vs = sk(e.to, eg);
+      const nd = du + cost;
+      if (nd < (dist.get(vs) ?? Infinity)) {
+        dist.set(vs, nd);
+        prev.set(vs, us);
+        nodeOf.set(vs, e.to);
+        pq.push([nd, e.to, eg]);
       }
     }
   }
-  if (!dist.has(dst)) return null;
-  const path = [dst];
-  while (path[path.length - 1] !== src) path.push(prev.get(path[path.length - 1])!);
-  return { km: dist.get(dst)!, path: path.reverse() };
+  if (final === null) return null;
+  const path = [nodeOf.get(final)!];
+  let cur = final;
+  while (prev.has(cur)) {
+    cur = prev.get(cur)!;
+    path.push(nodeOf.get(cur)!);
+  }
+  return { km: dist.get(final)!, path: path.reverse() };
 }
 
+// ---- stations ----
 
 export interface Station {
   code: string;
@@ -154,6 +191,46 @@ export function resolveStation(id: string): Position {
   return s.coord;
 }
 
+// ---- routing API ----
+
+function constraintsOf(options: RailRouteOptions): RouteConstraints {
+  return {
+    electrifiedOnly: options.electrifiedOnly,
+    noFerries: options.ferries === false,
+    gaugePenaltyKm: options.gaugeChangePenaltyKm,
+  };
+}
+
+function decorate(
+  g: Graph,
+  km: number,
+  path: string[],
+  options: RailRouteOptions,
+): RailRouteFeature {
+  const properties: RailRouteFeature['properties'] = { length: km, units: 'kilometers' };
+  // walk the path once to count gauge breaks and ferry distance
+  let gaugeChanges = 0;
+  let ferryKm = 0;
+  let lastGauge: string | undefined;
+  for (let i = 0; i < path.length - 1; i++) {
+    const e = (g.adj.get(path[i]) ?? []).find((x) => x.to === path[i + 1]);
+    if (!e) continue;
+    if (e.gauge) {
+      if (lastGauge && e.gauge !== lastGauge) gaugeChanges++;
+      lastGauge = e.gauge;
+    }
+    if (e.ferry) ferryKm += e.km;
+  }
+  properties.gaugeChanges = gaugeChanges;
+  if (ferryKm) properties.ferryKm = ferryKm;
+  if (options.speedKmh) properties.durationHours = km / options.speedKmh;
+  return {
+    type: 'Feature',
+    properties,
+    geometry: { type: 'LineString', coordinates: path.map((k) => g.coord.get(k)!) },
+  };
+}
+
 export function railRoute(
   origin: Position | string,
   destination: Position | string,
@@ -166,17 +243,12 @@ export function railRoute(
   const g = buildGraph(options.network);
   const src = snap(g, o);
   const dst = snap(g, d);
-  const result = dijkstra(g, src, dst);
+  const result = dijkstra(g, src, dst, constraintsOf(options));
   if (!result) throw new NoRouteError();
-  const coordinates = result.path.map((k) => g.coord.get(k)!);
-  const properties: RailRouteFeature['properties'] = {
-    length: result.km,
-    units: 'kilometers',
-  };
-  if (options.speedKmh) properties.durationHours = result.km / options.speedKmh;
-  if (originStation) properties.originStation = originStation.name;
-  if (destinationStation) properties.destinationStation = destinationStation.name;
-  return { type: 'Feature', properties, geometry: { type: 'LineString', coordinates } };
+  const feature = decorate(g, result.km, result.path, options);
+  if (originStation) feature.properties.originStation = originStation.name;
+  if (destinationStation) feature.properties.destinationStation = destinationStation.name;
+  return feature;
 }
 
 /** Fetch a rail network (GeoJSON FeatureCollection of LineStrings) at runtime. */
@@ -190,21 +262,6 @@ export async function loadNetwork(url: string): Promise<RailNetwork> {
     throw new Error('loadNetwork: payload is not a GeoJSON FeatureCollection');
   }
   return data;
-}
-
-function toFeature(
-  g: Graph,
-  km: number,
-  path: string[],
-  options: { speedKmh?: number },
-): RailRouteFeature {
-  const properties: RailRouteFeature['properties'] = { length: km, units: 'kilometers' };
-  if (options.speedKmh) properties.durationHours = km / options.speedKmh;
-  return {
-    type: 'Feature',
-    properties,
-    geometry: { type: 'LineString', coordinates: path.map((k) => g.coord.get(k)!) },
-  };
 }
 
 export interface RailRouteAlternativesOptions extends RailRouteOptions {
@@ -222,13 +279,14 @@ export function railRouteAlternatives(
   options: RailRouteAlternativesOptions,
 ): RailRouteFeature[] {
   const k = options.k ?? 3;
+  const base = constraintsOf(options);
   const o = typeof origin === 'string' ? resolveStation(origin) : origin;
   const d = typeof destination === 'string' ? resolveStation(destination) : destination;
   const g = buildGraph(options.network);
   const src = snap(g, o);
   const dst = snap(g, d);
 
-  const best = dijkstra(g, src, dst);
+  const best = dijkstra(g, src, dst, base);
   if (!best) throw new NoRouteError();
 
   const accepted: Array<{ km: number; path: string[] }> = [best];
@@ -236,30 +294,29 @@ export function railRouteAlternatives(
   const seen = new Set<string>([best.path.join('>')]);
 
   while (accepted.length < k) {
-    const prev = accepted[accepted.length - 1];
-    for (let i = 0; i < prev.path.length - 1; i++) {
-      const spur = prev.path[i];
-      const rootPath = prev.path.slice(0, i + 1);
+    const prevRoute = accepted[accepted.length - 1];
+    for (let i = 0; i < prevRoute.path.length - 1; i++) {
+      const spur = prevRoute.path[i];
+      const rootPath = prevRoute.path.slice(0, i + 1);
       const banned = new Set<string>();
       for (const a of accepted) {
         if (a.path.length > i && a.path.slice(0, i + 1).join('>') === rootPath.join('>')) {
           banned.add(edgeKey(a.path[i], a.path[i + 1]));
         }
       }
-      // ban revisiting root nodes (except the spur itself) via their edges
       const rootSet = new Set(rootPath.slice(0, -1));
       for (const n of rootSet) for (const { to } of g.adj.get(n) ?? []) banned.add(edgeKey(n, to));
 
-      const spurResult = dijkstra(g, spur, dst, banned);
+      const spurResult = dijkstra(g, spur, dst, { ...base, banned });
       if (!spurResult) continue;
       const path = [...rootPath.slice(0, -1), ...spurResult.path];
-      const key = path.join('>');
-      if (seen.has(key)) continue;
-      seen.add(key);
+      const pk = path.join('>');
+      if (seen.has(pk)) continue;
+      seen.add(pk);
       let km = spurResult.km;
       for (let j = 0; j < i; j++) {
-        const edges = g.adj.get(prev.path[j]) ?? [];
-        km += edges.find((e) => e.to === prev.path[j + 1])?.km ?? 0;
+        const edges = g.adj.get(prevRoute.path[j]) ?? [];
+        km += edges.find((e) => e.to === prevRoute.path[j + 1])?.km ?? 0;
       }
       candidates.push({ km, path });
     }
@@ -270,7 +327,7 @@ export function railRouteAlternatives(
 
   return accepted
     .sort((a, b) => a.km - b.km)
-    .map((r) => toFeature(g, r.km, r.path, options));
+    .map((r) => decorate(g, r.km, r.path, options));
 }
 
 /**

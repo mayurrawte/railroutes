@@ -104,6 +104,16 @@ const net = await loadNetwork('https://example.com/rail.json'); // GeoJSON Featu
 railRoute(a, b, { network: net });
 ```
 
+### Gauge, electrification, ferries
+
+```ts
+railRoute(a, b, { network: EUROPE_NETWORK, electrifiedOnly: true });      // electric traction only
+railRoute(a, b, { network: EUROPE_NETWORK, ferries: false });             // no train ferries
+railRoute(a, b, { network: EUROPE_NETWORK, gaugeChangePenaltyKm: 200 });  // penalize 1435↔1668/1520 breaks
+// results carry properties.gaugeChanges and properties.ferryKm
+// Rome → Palermo crosses the Messina train ferry; Rostock–Trelleborg links Scandinavia
+```
+
 ### Errors
 
 - Unknown station id → `Error('Unknown station: …')`

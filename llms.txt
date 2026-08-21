@@ -39,6 +39,11 @@ railRoute('Basel SBB', 'Milano Centrale', { network: CORRIDOR_NETWORK });
 railRouteAlternatives(a, b, { network: EUROPE_NETWORK, k: 3 }); // Feature[], sorted by length
 railRouteMulti([a, b, c], { network: EUROPE_NETWORK });         // one Feature, properties.legs = per-leg km
 
+// gauge / electrification / ferry awareness (network edges carry OSM tags)
+railRoute(a, b, { network: EUROPE_NETWORK, electrifiedOnly: true });
+railRoute(a, b, { network: EUROPE_NETWORK, ferries: false, gaugeChangePenaltyKm: 200 });
+// results include properties.gaugeChanges and properties.ferryKm
+
 // origin/destination snap to the nearest network node automatically;
 // disconnected points throw NoRouteError; unknown station ids throw
 ```
