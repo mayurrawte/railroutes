@@ -16,6 +16,8 @@
 npm install railroute-ts
 ```
 
+**🗺️ [Try the interactive demo](https://mayurrawte.github.io/railroutes/)** — click two points in Europe and see the rail route, computed in your browser.
+
 **Status: v0.** Two bundled networks: **Europe-wide** (35–72N,
 10W–32E — 30,628 edges, 1.25 MB gzipped) and the lighter Rhine-Alpine corridor.
 Verified against real itineraries: Lisbon→Warsaw, Stockholm→Rome, London→Vienna

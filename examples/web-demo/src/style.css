@@ -1,0 +1,27 @@
+* { box-sizing: border-box; margin: 0; }
+html, body, #map { height: 100%; font-family: system-ui, -apple-system, sans-serif; }
+#panel {
+  position: absolute; top: 16px; left: 16px; z-index: 10;
+  width: 300px; padding: 16px; border-radius: 12px;
+  background: rgba(255, 255, 255, 0.96); color: #0f172a;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.18);
+}
+#panel h1 { font-size: 18px; margin-bottom: 2px; }
+#panel .sub { font-size: 12.5px; color: #475569; margin-bottom: 10px; line-height: 1.45; }
+#panel a { color: #e11d48; }
+#presets { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+#presets button {
+  font-size: 12px; padding: 5px 9px; border-radius: 999px; cursor: pointer;
+  border: 1px solid #e2e8f0; background: #f8fafc; color: #0f172a;
+}
+#presets button:hover { border-color: #e11d48; color: #e11d48; }
+.alt-toggle { font-size: 12.5px; color: #475569; display: flex; gap: 6px; align-items: center; margin-bottom: 10px; }
+#result { font-size: 14px; line-height: 1.5; border-top: 1px solid #e2e8f0; padding-top: 10px; }
+#result .meta { font-size: 11.5px; color: #94a3b8; }
+@media (max-width: 560px) { #panel { width: calc(100% - 32px); } }
+@media (prefers-color-scheme: dark) {
+  #panel { background: rgba(15, 23, 42, 0.95); color: #e2e8f0; }
+  #panel .sub, .alt-toggle { color: #94a3b8; }
+  #presets button { background: #1e293b; border-color: #334155; color: #e2e8f0; }
+  #result { border-color: #334155; }
+}
