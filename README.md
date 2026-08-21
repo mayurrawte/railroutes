@@ -3,7 +3,7 @@
 > Rail route planning for JavaScript/TypeScript — shortest rail routes over the
 > OpenStreetMap railway network, returned as GeoJSON.
 
-**🗺️ [Try the interactive demo](https://mayurrawte.github.io/railroutes/)** — click two points in Europe, see the rail route. ([source](examples/web-demo))
+**🗺️ [Try the interactive demo](https://mayurrawte.is-a.dev/railroutes/)** — click two points in Europe, see the rail route. ([source](examples/web-demo))
 
 This monorepo holds:
 
