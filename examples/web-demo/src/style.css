@@ -25,3 +25,20 @@ html, body, #map { height: 100%; font-family: system-ui, -apple-system, sans-ser
   #presets button { background: #1e293b; border-color: #334155; color: #e2e8f0; }
   #result { border-color: #334155; }
 }
+.station-row { display: flex; gap: 6px; }
+#from, #to {
+  width: 100%; font-size: 13px; padding: 7px 9px; margin-bottom: 6px;
+  border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; color: inherit;
+}
+#swap {
+  flex: 0 0 32px; height: 32px; margin-top: 1px; border-radius: 8px; cursor: pointer;
+  border: 1px solid #e2e8f0; background: #f8fafc; color: inherit;
+}
+#swap:hover { border-color: #e11d48; color: #e11d48; }
+.row { font-size: 12.5px; color: #475569; display: flex; gap: 6px; align-items: center; margin-bottom: 8px; }
+.speed input[type="range"] { flex: 1; }
+@media (prefers-color-scheme: dark) {
+  #from, #to, #swap { background: #1e293b; border-color: #334155; color: #e2e8f0; }
+  .row { color: #94a3b8; }
+}
+#result .warn { font-size: 11.5px; color: #d97706; }

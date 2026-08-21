@@ -4,18 +4,29 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>railroute-ts — interactive rail routing demo</title>
-    <meta name="description" content="Click two points anywhere in Europe and get the shortest rail route over the OpenStreetMap railway network. Powered by railroute-ts." />
+    <meta name="description" content="Click two points or pick two stations anywhere in Europe and get the shortest rail route over the OpenStreetMap railway network. Powered by railroute-ts." />
   </head>
   <body>
     <div id="map"></div>
     <div id="panel">
       <h1>railroute-ts</h1>
-      <p class="sub">Click two points in Europe → shortest <em>rail</em> route.<br/>
+      <p class="sub">Shortest <em>rail</em> route, computed in your browser.<br/>
         <a href="https://github.com/mayurrawte/railroutes" target="_blank" rel="noopener">GitHub</a> ·
         <a href="https://www.npmjs.com/package/railroute-ts" target="_blank" rel="noopener">npm</a></p>
+
+      <div class="station-row">
+        <input id="from" list="stations" placeholder="From station… (or click map)" autocomplete="off" />
+        <button id="swap" title="Swap">⇅</button>
+      </div>
+      <input id="to" list="stations" placeholder="To station…" autocomplete="off" />
+      <datalist id="stations"></datalist>
+
       <div id="presets"></div>
-      <label class="alt-toggle"><input type="checkbox" id="alts" /> show 2 alternatives</label>
-      <div id="result">Pick a preset or click the map twice.</div>
+
+      <label class="row"><input type="checkbox" id="alts" /> show 2 alternatives</label>
+      <label class="row speed">speed <input type="range" id="speed" min="40" max="200" step="10" value="80" /> <span id="speedv">80</span> km/h</label>
+
+      <div id="result">Pick two stations, a preset, or click the map twice. Drag the pins to adjust.</div>
     </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
