@@ -6,10 +6,8 @@
 > routes) — together they cover multimodal sea + rail freight distance.
 > MIT licensed; network data © OpenStreetMap contributors (ODbL).
 
-Status: v0 pre-release, not yet on npm. Bundled network covers the
-Rhine-Alpine corridor (Netherlands, western Germany, Switzerland, northern
-Italy). Install from GitHub until the npm release:
-`npm install github:mayurrawte/railroutes#main` (workspace `railroute-ts/`).
+Status: v0, on npm. Two bundled networks: Europe-wide (35–72N, 10W–32E)
+and the lighter Rhine-Alpine corridor. Install: `npm install railroute-ts`.
 
 ## Usage
 
@@ -56,6 +54,7 @@ Leaflet/Mapbox/deck.gl maps. For the sea leg, use `searoute-ts`
 
 ## Links
 
+- npm: https://www.npmjs.com/package/railroute-ts
 - Repo: https://github.com/mayurrawte/railroutes
 - Library: https://github.com/mayurrawte/railroutes/tree/main/railroute-ts
 - Data pipeline: https://github.com/mayurrawte/railroutes/tree/main/network

@@ -1,6 +1,6 @@
 {
   "name": "railroute-ts",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "scripts": {
     "test": "vitest run",
     "build": "tsc"
@@ -8,22 +8,41 @@
   "keywords": [
     "rail-route",
     "railroute",
-    "rail-distance",
+    "rail-routes",
+    "railway-route",
     "train-route",
+    "rail-distance",
+    "train-distance",
     "railway-routing",
     "rail-network",
+    "railway-network",
+    "rail-freight",
+    "freight",
+    "logistics",
+    "multimodal",
+    "supply-chain",
+    "emissions",
+    "co2",
+    "uic",
+    "station-codes",
+    "train-station",
     "openstreetmap",
+    "osm",
+    "overpass",
     "geojson",
     "dijkstra",
-    "logistics",
-    "freight",
-    "multimodal",
+    "k-shortest",
+    "yen-algorithm",
     "shortest-path",
-    "typescript"
+    "itinerary",
+    "eta",
+    "europe",
+    "typescript",
+    "searoute"
   ],
   "author": "Mayur Rawte",
   "license": "MIT",
-  "description": "Shortest rail route between two points. TypeScript library powered by the OpenStreetMap rail network. Returns GeoJSON.",
+  "description": "Shortest rail route between any two points or stations. TypeScript/JavaScript rail routing with bundled OpenStreetMap networks (Europe-wide + Rhine-Alpine corridor), UIC station codes, K-shortest alternatives, multi-leg itineraries, and ETA from speed. Returns GeoJSON. Zero dependencies. Sibling of searoute-ts.",
   "devDependencies": {
     "@types/node": "^26.2.0",
     "typescript": "^7.0.2",
@@ -68,5 +87,9 @@
   ],
   "engines": {
     "node": ">=20"
+  },
+  "homepage": "https://github.com/mayurrawte/railroutes/tree/main/railroute-ts#readme",
+  "bugs": {
+    "url": "https://github.com/mayurrawte/railroutes/issues"
   }
 }
