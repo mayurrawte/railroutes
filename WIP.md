@@ -30,6 +30,8 @@ _Updated: 2026-09-02_
 - Issues: all feature issues closed. Only **#7 open** (npm publish automation).
 
 ## Next steps (in rough order)
+0. **Global networks roadmap filed 2026-09-02**: spec at docs/superpowers/specs/2026-09-02-global-networks-design.md,
+   issues #9–#14 (pipeline generalisation → India bundled → North America via NARN/CDN → China via CDN → networks-v1 release → multimodal showcase). Start with #9.
 1. **#7 — CI publishing**: Mayur links the npm Trusted Publisher for `railroute-ts`
    (npmjs.com → package → Access → Trusted Publisher: GitHub Actions, repo
    `mayurrawte/railroutes`, workflow `publish.yml`, environment EMPTY), then add
