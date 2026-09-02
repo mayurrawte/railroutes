@@ -1,8 +1,9 @@
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { NoRouteError, railRoute, railRouteAlternatives } from 'railroute-ts';
-import { EUROPE_NETWORK } from 'railroute-ts/networks/europe';
-import { EUROPE_STATIONS } from 'railroute-ts/stations/europe';
+import { NoRouteError, railRoute, railRouteAlternatives, registerStations } from 'railroute-ts';
+import { EUROPE_NETWORK, EUROPE_STATIONS } from '@railroute-ts/europe';
+
+registerStations(EUROPE_STATIONS);
 import './style.css';
 
 type LngLat = [number, number];

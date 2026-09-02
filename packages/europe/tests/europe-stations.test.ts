@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { railRoute } from '../src/index.js';
-import { EUROPE_NETWORK } from '../src/networks/europe.js';
-import '../src/stations/europe.js';
+import { railRoute, registerStations } from 'railroute-ts';
+import { EUROPE_NETWORK } from '../src/index.js';
+import { EUROPE_STATIONS } from '../src/index.js';
+registerStations(EUROPE_STATIONS);
 
 describe('bundled Europe stations', () => {
   it('routes St Pancras International -> Wien Hauptbahnhof (~1,600 km)', () => {

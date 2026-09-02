@@ -275,9 +275,9 @@ export function railRoute(
 }
 
 /**
- * CDN copies of the bundled networks (this repo at the `networks-v1` tag, via
+ * CDN copies of the network data (this repo at the `networks-v1` tag, via
  * jsDelivr) for browsers/edge runtimes that would rather `loadNetwork(url)` on
- * demand than ship the JSON in their bundle.
+ * demand than install a `@railroute-ts/<region>` package.
  */
 export const NETWORK_URLS = {
   europe: 'https://cdn.jsdelivr.net/gh/mayurrawte/railroutes@networks-v1/railroute-ts/src/networks/europe-v0.json',

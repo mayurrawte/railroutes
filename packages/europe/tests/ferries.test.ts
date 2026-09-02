@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { railRoute } from '../src/index.js';
-import { EUROPE_NETWORK } from '../src/networks/europe.js';
+import { railRoute } from 'railroute-ts';
+import { EUROPE_NETWORK } from '../src/index.js';
 
 describe('train ferries on the Europe network', () => {
   it('Rome -> Palermo crosses the Messina strait ferry (~900 km, ferryKm > 0)', () => {

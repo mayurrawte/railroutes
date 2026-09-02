@@ -1,0 +1,50 @@
+{
+  "name": "@railroute-ts/europe",
+  "version": "2026.9.0",
+  "description": "Europe rail network data for railroute-ts — Europe-wide mainline rail (35–72N, 10W–32E) from OpenStreetMap, with gauge, electrification and train-ferry links (Messina, Rostock–Trelleborg). 12,886 stations with UIC codes.",
+  "type": "module",
+  "main": "./dist/src/index.js",
+  "types": "./dist/src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "import": "./dist/src/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "keywords": [
+    "railroute-ts",
+    "rail-route",
+    "railway",
+    "train-route",
+    "rail-network",
+    "europe",
+    "freight",
+    "logistics",
+    "geojson"
+  ],
+  "license": "MIT",
+  "peerDependencies": {
+    "railroute-ts": ">=0.2.0"
+  },
+  "devDependencies": {
+    "railroute-ts": "^0.2.0",
+    "typescript": "^5.7.0",
+    "vitest": "^4.1.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mayurrawte/railroutes.git",
+    "directory": "packages/europe"
+  },
+  "homepage": "https://github.com/mayurrawte/railroutes/tree/main/packages/europe#readme"
+}

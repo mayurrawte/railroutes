@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { railRoute } from '../src/index.js';
+import { railRoute, registerStations } from '../src/index.js';
 import { CORRIDOR_NETWORK } from '../src/networks/corridor.js';
-import '../src/stations/corridor.js'; // side-effect: registers corridor stations
+import { CORRIDOR_STATIONS } from '../src/stations/corridor.js';
+registerStations(CORRIDOR_STATIONS);
 
 describe('bundled corridor stations', () => {
   it('routes by UIC code: Rotterdam Centraal (8400530) -> Milano Centrale (8301700)', () => {

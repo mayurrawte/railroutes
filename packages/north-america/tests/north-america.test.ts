@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { railRoute, NETWORK_URLS } from '../src/index.js';
-import { NORTH_AMERICA_NETWORK as NA } from '../src/networks/north-america.js';
+import { railRoute, NETWORK_URLS } from 'railroute-ts';
+import { NORTH_AMERICA_NETWORK as NA } from '../src/index.js';
 
 describe('North America network (FRA/BTS NARN)', () => {
   it('Los Angeles -> Chicago ≈ 3,540 km (BNSF Transcon ≈ 2,200 mi)', () => {

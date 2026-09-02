@@ -93,3 +93,24 @@ US OSM count timed out at 180 s; irrelevant because NARN is the better source.
 - NARN "main sub network" may include long out-of-service stretches mislabelled
   — cross-check a few known abandoned lines; `X`/`A`/`R` are excluded anyway.
 - Bundle size creep: enforce the 1.5 MB-gz rule in a CI size check.
+
+## Addendum 2026-09-02 (evening): data packages instead of bundling
+
+Decision 1 above (bundle ≤ 1.5 MB gz) was superseded the same day once four
+regions existed: bundling everything made `npm install railroute-ts` 4.2 MB
+compressed / 25 MB unpacked for users who need one region. Shipped shape:
+
+- `railroute-ts` — core algorithm + types + `loadNetwork` + the small Rhine-Alpine
+  corridor sample (~30 KB).
+- `@railroute-ts/europe`, `@railroute-ts/india`, `@railroute-ts/north-america`,
+  `@railroute-ts/china` — one data package per region (`packages/<region>/`),
+  exporting `<REGION>_NETWORK` and, where codes exist, `<REGION>_STATIONS`.
+  `sideEffects: false`; calendar versions (`2026.9.x`); peer-dep on the core.
+- Stations no longer self-register on import — call `registerStations(...)`.
+  Explicit, tree-shakable, no surprise globals.
+- The 1.5 MB-gz rule still applies per data file (guard test in every package);
+  a region that outgrows it gets a lighter resolution tier, not a CDN-only path.
+- `NETWORK_URLS` + jsDelivr (`networks-v1` tag) remain for runtime loading.
+- Repo is an npm workspace; CI/publish/deploy workflows run from the root.
+  `publish.yml` is a matrix over the six publishable workspaces and skips
+  versions already on npm, so one release publishes whatever changed.

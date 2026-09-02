@@ -1,0 +1,50 @@
+{
+  "name": "@railroute-ts/north-america",
+  "version": "2026.9.0",
+  "description": "North America rail network data for railroute-ts — US, Canada and Mexico mainline from the FRA/BTS North American Rail Network (main sub-network + rail ferries). Public domain. Coordinates only — no station codes yet.",
+  "type": "module",
+  "main": "./dist/src/index.js",
+  "types": "./dist/src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "import": "./dist/src/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "keywords": [
+    "railroute-ts",
+    "rail-route",
+    "railway",
+    "train-route",
+    "rail-network",
+    "north-america",
+    "freight",
+    "logistics",
+    "geojson"
+  ],
+  "license": "MIT",
+  "peerDependencies": {
+    "railroute-ts": ">=0.2.0"
+  },
+  "devDependencies": {
+    "railroute-ts": "^0.2.0",
+    "typescript": "^5.7.0",
+    "vitest": "^4.1.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mayurrawte/railroutes.git",
+    "directory": "packages/north-america"
+  },
+  "homepage": "https://github.com/mayurrawte/railroutes/tree/main/packages/north-america#readme"
+}

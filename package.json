@@ -1,0 +1,14 @@
+{
+  "name": "railroutes-monorepo",
+  "private": true,
+  "workspaces": [
+    "railroute-ts",
+    "packages/*",
+    "examples/mcp-server",
+    "examples/web-demo"
+  ],
+  "scripts": {
+    "build": "npm run build -w railroute-ts && npm run build --workspaces --if-present",
+    "test": "npm run build -w railroute-ts && npm test --workspaces --if-present"
+  }
+}

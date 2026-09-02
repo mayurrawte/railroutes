@@ -11,16 +11,13 @@ jobs:
     strategy:
       matrix:
         node: [20, 22, 24]
-    defaults:
-      run:
-        working-directory: railroute-ts
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
           cache: npm
-          cache-dependency-path: railroute-ts/package-lock.json
       - run: npm ci
-      - run: npm test
-      - run: npm run build
+      - run: npm run build -w railroute-ts
+      - run: npm run build --workspaces --if-present
+      - run: npm test --workspaces --if-present

@@ -10,7 +10,8 @@
   },
   "dependencies": {
     "maplibre-gl": "^4.7.1",
-    "railroute-ts": "^0.0.2"
+    "railroute-ts": "^0.2.0",
+    "@railroute-ts/europe": "^2026.9.0"
   },
   "devDependencies": {
     "typescript": "^5.7.0",

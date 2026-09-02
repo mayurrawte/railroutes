@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { railRoute } from '../src/index.js';
-import { EUROPE_NETWORK } from '../src/networks/europe.js';
+import { railRoute } from 'railroute-ts';
+import { EUROPE_NETWORK } from '../src/index.js';
 
 const km = (a: [number, number], b: [number, number]) =>
   railRoute(a, b, { network: EUROPE_NETWORK }).properties.length;

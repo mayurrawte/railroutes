@@ -13,25 +13,32 @@
 [![license](https://img.shields.io/npm/l/railroute-ts.svg?style=flat)](https://github.com/mayurrawte/railroutes/blob/main/railroute-ts/LICENSE)
 
 ```bash
-npm install railroute-ts
+npm install railroute-ts @railroute-ts/europe    # core + the region(s) you need
 ```
+
+| Data package | Coverage | Stations | Gzipped |
+|---|---|---|---|
+| [`@railroute-ts/europe`](https://www.npmjs.com/package/@railroute-ts/europe) | Europe, 35–72N 10W–32E (OSM) | 12,886 with UIC codes | 1.46 MB |
+| [`@railroute-ts/india`](https://www.npmjs.com/package/@railroute-ts/india) | Indian Railways mainline (OSM) | 8,476 with IR codes (NDLS, CSMT …) | 0.28 MB |
+| [`@railroute-ts/north-america`](https://www.npmjs.com/package/@railroute-ts/north-america) | US + Canada + Mexico (FRA/BTS NARN, public domain) | — | 0.95 MB |
+| [`@railroute-ts/china`](https://www.npmjs.com/package/@railroute-ts/china) | Mainland China incl. HSR (OSM) | — | 0.83 MB |
+
+The core package is ~30 KB and ships only the small Rhine-Alpine corridor
+sample network; install the regions you route in. Data packages are versioned by
+calendar (`2026.9.x` = data refresh) and can also be fetched at runtime from a
+CDN with `loadNetwork(NETWORK_URLS.europe)`.
 
 **🗺️ [Try the interactive demo](https://mayurrawte.is-a.dev/railroutes/)** — click two points in Europe and see the rail route, computed in your browser.
 
-**Status: v0.2.** Five bundled networks: **Europe** (35–72N, 10W–32E —
-40,693 edges, 1.46 MB gzipped), **India** (Indian Railways mainline — 6,858
-edges, 0.28 MB gzipped, routes by IR station codes), **North America** (US +
-Canada + Mexico from the FRA/BTS North American Rail Network — 12,943 edges,
-0.95 MB gzipped, public domain), **China** (mainline incl. high-speed — 12,445
-edges, 0.83 MB gzipped) and the lighter Rhine-Alpine corridor. Verified against
-real itineraries: Lisbon→Warsaw, London→Vienna via the Channel Tunnel, New
-Delhi→Mumbai CSMT, Los Angeles→Chicago, Shanghai→Beijing, Guangzhou→Beijing.
-The package installs at 4.2 MB compressed.
+**Status: v0.2.** Four regions — Europe (40,693 edges), India (6,858),
+North America (12,943) and China (12,445) — verified against real itineraries:
+Lisbon→Warsaw, London→Vienna via the Channel Tunnel, New Delhi→Mumbai CSMT, Los
+Angeles→Chicago, Shanghai→Beijing, Guangzhou→Beijing.
 
 ```ts
-import { railRoute } from 'railroute-ts';
-import { EUROPE_NETWORK } from 'railroute-ts/networks/europe';    // all of Europe
-import { CORRIDOR_NETWORK } from 'railroute-ts/networks/corridor'; // lighter: Rhine-Alpine only
+import { railRoute, registerStations } from 'railroute-ts';
+import { EUROPE_NETWORK, EUROPE_STATIONS } from '@railroute-ts/europe';   // npm i @railroute-ts/europe
+import { CORRIDOR_NETWORK } from 'railroute-ts/networks/corridor';        // built-in sample: Rhine-Alpine only
 
 const route = railRoute([4.47, 51.92], [8.92, 44.41], { network: CORRIDOR_NETWORK });
 // Rotterdam → Genoa via the Gotthard base tunnel
@@ -40,8 +47,8 @@ const route = railRoute([4.47, 51.92], [8.92, 44.41], { network: CORRIDOR_NETWOR
 railRoute(rotterdam, genoa, { network: CORRIDOR_NETWORK, speedKmh: 80 });
 // → properties.durationHours ≈ 14.8
 
-// station codes (UIC) or names, via the bundled stations datasets
-import 'railroute-ts/stations/europe';   // 12,886 stations (OSM uic_ref)
+// station codes (UIC) or names — register a stations dataset once
+registerStations(EUROPE_STATIONS);        // 12,886 stations (OSM uic_ref)
 railRoute('London St. Pancras International', 'Wien Hauptbahnhof', { network: EUROPE_NETWORK });
 railRoute('5100065', '8101003', { network: EUROPE_NETWORK });  // Warszawa Centralna → Wien Hbf
 ```
@@ -62,7 +69,7 @@ railRoute('5100065', '8101003', { network: EUROPE_NETWORK });  // Warszawa Centr
 
 ```ts
 import { railRoute } from 'railroute-ts';
-import { EUROPE_NETWORK } from 'railroute-ts/networks/europe';
+import { EUROPE_NETWORK } from '@railroute-ts/europe';
 
 const route = railRoute([4.47, 51.92], [8.92, 44.41], { network: EUROPE_NETWORK });
 route.properties.length;   // km
@@ -72,7 +79,7 @@ route.geometry;            // LineString along real track — drop into Leaflet/
 ### Stations — UIC codes or names
 
 ```ts
-import 'railroute-ts/stations/europe'; // side-effect: registers 12,886 stations
+registerStations(EUROPE_STATIONS);
 
 railRoute('8400530', '8301700', { network: EUROPE_NETWORK });               // UIC codes
 railRoute('Basel SBB', 'Milano Centrale', { network: EUROPE_NETWORK });     // names (case-insensitive)
@@ -112,9 +119,9 @@ railRoute(a, b, { network: net });
 ### India — Indian Railways station codes
 
 ```ts
-import { railRoute } from 'railroute-ts';
-import { INDIA_NETWORK } from 'railroute-ts/networks/india';
-import 'railroute-ts/stations/india';   // 8,476 stations, IR codes from OSM `ref`
+import { railRoute, registerStations } from 'railroute-ts';
+import { INDIA_NETWORK, INDIA_STATIONS } from '@railroute-ts/india';   // npm i @railroute-ts/india
+registerStations(INDIA_STATIONS);   // 8,476 stations, IR codes from OSM `ref`
 
 railRoute('NDLS', 'CSMT', { network: INDIA_NETWORK, speedKmh: 55 });
 // New Delhi → Mumbai CSMT ≈ 1,434 km (IR timetable: 1,384 km), ~26 h at freight speed
@@ -135,7 +142,7 @@ Bangladesh mainlines are not connected to the Indian graph.
 
 ```ts
 import { railRoute } from 'railroute-ts';
-import { NORTH_AMERICA_NETWORK } from 'railroute-ts/networks/north-america';
+import { NORTH_AMERICA_NETWORK } from '@railroute-ts/north-america';   // npm i @railroute-ts/north-america
 
 railRoute([-118.24, 34.05], [-87.63, 41.88], { network: NORTH_AMERICA_NETWORK, speedKmh: 40 });
 // Los Angeles → Chicago ≈ 3,399 km (BNSF Transcon timetable: 2,200 mi / 3,540 km), ~85 h at intermodal speed
@@ -158,7 +165,7 @@ on this network. No station codes yet — pass coordinates.
 
 ```ts
 import { railRoute } from 'railroute-ts';
-import { CHINA_NETWORK } from 'railroute-ts/networks/china';
+import { CHINA_NETWORK } from '@railroute-ts/china';   // npm i @railroute-ts/china
 
 railRoute([121.47, 31.23], [116.4, 39.9], { network: CHINA_NETWORK });   // Shanghai → Beijing ≈ 1,347 km (Jinghu HSR: 1,318 km)
 railRoute([113.26, 23.13], [116.4, 39.9], { network: CHINA_NETWORK });   // Guangzhou → Beijing ≈ 2,302 km (Jingguang: 2,298 km)
@@ -202,9 +209,9 @@ railRoute([0, 0], 'Warsaw Central', { network: EUROPE_NETWORK, maxSnapDistanceKm
 - Point farther than `maxSnapDistanceKm` from the network → `SnapFailedError` (`.endpoint`, `.distanceKm`)
 - No path between the snapped points → `NoRouteError`
 
-## Loading networks from a CDN instead of bundling
+## Loading networks from a CDN instead of installing
 
-Every bundled network is also served from this repo (tag `networks-v1`) via
+Every data package is also served from this repo (tag `networks-v1`) via
 jsDelivr, for browsers and edge runtimes that would rather fetch on demand:
 
 ```ts
@@ -219,7 +226,7 @@ railRoute([-118.24, 34.05], [-87.63, 41.88], { network });
 import 'searoute-ts/ports';
 import { seaRoute } from 'searoute-ts';
 import { railRoute } from 'railroute-ts';
-import { EUROPE_NETWORK } from 'railroute-ts/networks/europe';
+import { EUROPE_NETWORK } from '@railroute-ts/europe';
 
 const sea  = seaRoute('CNSHA', 'NLRTM', { units: 'kilometers' });   // ≈ 19,753 km via Suez
 const rail = railRoute([4.47, 51.92], [8.92, 44.41], { network: EUROPE_NETWORK }); // ≈ 1,180 km
@@ -255,6 +262,22 @@ itineraries, snap-distance guard.
 - Shareable URL state in the demo
 
 Using railroute-ts? [Tell us](https://github.com/mayurrawte/railroutes/issues/new?template=who-uses-railroute-ts.md) — it shapes what gets built next.
+
+## Migrating from 0.1.x
+
+0.1.0 bundled Europe inside the core. From 0.2.0 the data lives in
+`@railroute-ts/<region>` packages and stations are registered explicitly:
+
+```diff
+-import { EUROPE_NETWORK } from 'railroute-ts/networks/europe';
+-import 'railroute-ts/stations/europe';
++import { registerStations } from 'railroute-ts';
++import { EUROPE_NETWORK, EUROPE_STATIONS } from '@railroute-ts/europe';
++registerStations(EUROPE_STATIONS);
+```
+
+`railroute-ts/networks/corridor` and `railroute-ts/stations/corridor` stay in the
+core (the corridor stations no longer self-register — call `registerStations`).
 
 ## License
 

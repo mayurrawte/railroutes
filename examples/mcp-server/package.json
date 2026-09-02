@@ -36,6 +36,10 @@
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
+    "@railroute-ts/china": "^2026.9.0",
+    "@railroute-ts/europe": "^2026.9.0",
+    "@railroute-ts/india": "^2026.9.0",
+    "@railroute-ts/north-america": "^2026.9.0",
     "railroute-ts": "^0.2.0",
     "zod": "^3.25.0"
   },

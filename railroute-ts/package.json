@@ -3,7 +3,7 @@
   "version": "0.2.0",
   "scripts": {
     "test": "vitest run",
-    "build": "tsc"
+    "build": "rm -rf dist && tsc"
   },
   "keywords": [
     "rail-route",
@@ -50,7 +50,7 @@
   ],
   "author": "Mayur Rawte",
   "license": "MIT",
-  "description": "Shortest rail route between any two points or stations. TypeScript/JavaScript rail routing with bundled OpenStreetMap networks (Europe-wide + Rhine-Alpine corridor), UIC station codes, K-shortest alternatives, multi-leg itineraries, and ETA from speed. Returns GeoJSON. Zero dependencies. Sibling of searoute-ts.",
+  "description": "Shortest rail route between two points — TypeScript rail routing over OpenStreetMap/NARN networks. Core library; install a @railroute-ts/<region> data package (europe, india, north-america, china).",
   "devDependencies": {
     "@types/node": "^26.2.0",
     "typescript": "^7.0.2",
@@ -70,30 +70,6 @@
     "./stations/corridor": {
       "types": "./dist/stations/corridor.d.ts",
       "import": "./dist/stations/corridor.js"
-    },
-    "./networks/europe": {
-      "types": "./dist/networks/europe.d.ts",
-      "import": "./dist/networks/europe.js"
-    },
-    "./stations/europe": {
-      "types": "./dist/stations/europe.d.ts",
-      "import": "./dist/stations/europe.js"
-    },
-    "./networks/india": {
-      "types": "./dist/networks/india.d.ts",
-      "import": "./dist/networks/india.js"
-    },
-    "./stations/india": {
-      "types": "./dist/stations/india.d.ts",
-      "import": "./dist/stations/india.js"
-    },
-    "./networks/north-america": {
-      "types": "./dist/networks/north-america.d.ts",
-      "import": "./dist/networks/north-america.js"
-    },
-    "./networks/china": {
-      "types": "./dist/networks/china.d.ts",
-      "import": "./dist/networks/china.js"
     }
   },
   "files": [

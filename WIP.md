@@ -3,6 +3,12 @@
 _Updated: 2026-09-02_
 
 ## Current state
+- **2026-09-02 — monorepo split (uncommitted while writing)**: npm workspaces at repo root. `railroute-ts` core (~30 KB,
+  corridor sample only) + `packages/{europe,india,north-america,china}` = `@railroute-ts/<region>` (version 2026.9.0,
+  exports `<REGION>_NETWORK` [+ `_STATIONS`], `sideEffects:false`, peerDep railroute-ts). Stations NO LONGER self-register:
+  `registerStations(EUROPE_STATIONS)`. Demo + MCP migrated. CI/publish/deploy workflows are root-workspace based;
+  publish.yml is a 6-way matrix that skips versions already on npm. Publish order: railroute-ts 0.2.0 → 4 packs → mcp.
+  **npm org `railroute-ts` must exist first.**
 - **2026-09-02 — #12 China DONE (in 0.2.0, unpublished)**: 12 Overpass tiles (western boxes split; mirrors
   overpass.kumi.systems / lz4 as fallback — main instance 504'd on the 30–40N/73–100E box), 298,319 ways →
   12,445 edges / 3.97 MB / 0.83 MB gz → BUNDLED as `networks/china`. Package now 4.2 MB compressed / 25.6 MB

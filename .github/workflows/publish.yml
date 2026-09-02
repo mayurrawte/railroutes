@@ -1,5 +1,9 @@
-name: Publish railroute-ts to npm
+name: Publish to npm
 
+# Publishes the core and every @railroute-ts/* data package that is not already
+# on npm at its package.json version. Auth via npm OIDC trusted publishing — link
+# each package on npmjs.com (Access → Trusted Publisher: GitHub Actions, repo
+# mayurrawte/railroutes, workflow publish.yml, environment EMPTY). No tokens.
 on:
   release:
     types: [published]
@@ -7,27 +11,40 @@ on:
 
 permissions:
   contents: read
-  id-token: write # OIDC trusted publishing + provenance
+  id-token: write
 
 jobs:
   publish:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: railroute-ts
+    strategy:
+      fail-fast: false
+      matrix:
+        workspace:
+          - railroute-ts
+          - packages/europe
+          - packages/india
+          - packages/north-america
+          - packages/china
+          - examples/mcp-server
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: npm
-          cache-dependency-path: railroute-ts/package-lock.json
-          # NOTE: no registry-url — it writes an _authToken placeholder into
-          # .npmrc which overrides OIDC trusted publishing with a dummy token.
-      # Trusted publishing needs npm >= 11.5.1
-      - run: npm install -g npm@latest
+          # NOTE: no registry-url — its _authToken placeholder disables OIDC.
+      - run: npm install -g npm@latest   # trusted publishing needs npm >= 11.5.1
       - run: npm ci
-      - run: npm test
-      - run: npm run build
-      # Auth via OIDC trusted publisher (configured on npmjs.com) — no token.
-      - run: npm publish --provenance --access public
+      - run: npm run build -w railroute-ts
+      - run: npm run build --workspaces --if-present
+      - run: npm test --workspaces --if-present
+      - name: Publish if this version is not on npm yet
+        working-directory: ${{ matrix.workspace }}
+        run: |
+          NAME=$(node -p "require('./package.json').name")
+          VERSION=$(node -p "require('./package.json').version")
+          if npm view "$NAME@$VERSION" version >/dev/null 2>&1; then
+            echo "$NAME@$VERSION already published — skipping"
+          else
+            npm publish --provenance --access public
+          fi

@@ -1,15 +1,14 @@
-// Importing the station subpaths registers Europe + corridor stations into the
-// core, so agents can pass station names ("Wien Hauptbahnhof") or UIC codes.
-import { EUROPE_STATIONS } from 'railroute-ts/stations/europe';
-import { INDIA_STATIONS } from 'railroute-ts/stations/india';
-import 'railroute-ts/stations/corridor';
-import { EUROPE_NETWORK } from 'railroute-ts/networks/europe';
+// Register the station datasets once so agents can pass station names
+// ("Wien Hauptbahnhof") or codes (UIC / Indian Railways).
+import { EUROPE_NETWORK, EUROPE_STATIONS } from '@railroute-ts/europe';
+import { INDIA_NETWORK, INDIA_STATIONS } from '@railroute-ts/india';
+import { NORTH_AMERICA_NETWORK } from '@railroute-ts/north-america';
+import { CHINA_NETWORK } from '@railroute-ts/china';
 import { CORRIDOR_NETWORK } from 'railroute-ts/networks/corridor';
-import { INDIA_NETWORK } from 'railroute-ts/networks/india';
-import { NORTH_AMERICA_NETWORK } from 'railroute-ts/networks/north-america';
-import { CHINA_NETWORK } from 'railroute-ts/networks/china';
+import { CORRIDOR_STATIONS } from 'railroute-ts/stations/corridor';
 import {
   NoRouteError,
+  registerStations,
   SnapFailedError,
   railRoute,
   railRouteAlternatives,
@@ -54,6 +53,9 @@ const NETWORKS: Record<NetworkName, RailNetwork> = {
   china: CHINA_NETWORK,
 };
 
+registerStations(EUROPE_STATIONS);
+registerStations(CORRIDOR_STATIONS);
+registerStations(INDIA_STATIONS);
 const ALL_STATIONS = [...EUROPE_STATIONS, ...INDIA_STATIONS];
 
 const commonOptions = {
