@@ -8,22 +8,24 @@ Polite: sequential, retries, 30 s between tiles. Re-runs skip finished tiles.
 """
 import json, sys, time, urllib.request, urllib.parse, pathlib
 
-OVERPASS = "https://overpass-api.de/api/interpreter"
+MIRRORS = ["https://overpass-api.de/api/interpreter", "https://overpass.kumi.systems/api/interpreter",
+           "https://lz4.overpass-api.de/api/interpreter"]
 cfg = json.load(open(sys.argv[1]))
 name = cfg["name"]
 if cfg.get("source") == "narn":
     import subprocess; sys.exit(subprocess.call([sys.executable, "fetch-narn.py", sys.argv[1]]))
 tiles_dir = pathlib.Path(f"{name}-tiles"); tiles_dir.mkdir(exist_ok=True)
 
-def query(q, out, tries=3):
+def query(q, out, tries=6):
     if out.exists():
         try:
             if "elements" in json.load(open(out)): print(f"SKIP {out}"); return
         except Exception: pass
     for attempt in range(1, tries + 1):
-        print(f"FETCH {out} (attempt {attempt})", flush=True)
+        url = MIRRORS[(attempt - 1) % len(MIRRORS)]
+        print(f"FETCH {out} (attempt {attempt}, {url.split('/')[2]})", flush=True)
         try:
-            req = urllib.request.Request(OVERPASS, data=urllib.parse.urlencode({"data": q}).encode(),
+            req = urllib.request.Request(url, data=urllib.parse.urlencode({"data": q}).encode(),
                                          headers={"User-Agent": "railroutes-pipeline (github.com/mayurrawte/railroutes)"})
             body = urllib.request.urlopen(req, timeout=1000).read()
             d = json.loads(body)

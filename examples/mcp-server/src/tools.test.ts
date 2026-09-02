@@ -112,3 +112,13 @@ describe('north-america network', () => {
     expect(sc.distanceKm).toBeLessThan(3700);
   }, 30_000);
 });
+
+describe('china network', () => {
+  it('rail_route accepts network:"china" (Shanghai -> Beijing ≈ 1,300–1,500 km)', () => {
+    const res = runRailRoute(routeArgs({ origin: [121.47, 31.23], destination: [116.4, 39.9], network: 'china', includeGeometry: false }));
+    expect(res.isError).toBeFalsy();
+    const sc = res.structuredContent as { distanceKm: number };
+    expect(sc.distanceKm).toBeGreaterThan(1250);
+    expect(sc.distanceKm).toBeLessThan(1550);
+  }, 30_000);
+});

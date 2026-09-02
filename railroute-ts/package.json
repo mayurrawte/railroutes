@@ -45,7 +45,8 @@
     "usa",
     "canada",
     "mexico",
-    "narn"
+    "narn",
+    "china"
   ],
   "author": "Mayur Rawte",
   "license": "MIT",
@@ -89,6 +90,10 @@
     "./networks/north-america": {
       "types": "./dist/networks/north-america.d.ts",
       "import": "./dist/networks/north-america.js"
+    },
+    "./networks/china": {
+      "types": "./dist/networks/china.d.ts",
+      "import": "./dist/networks/china.js"
     }
   },
   "files": [

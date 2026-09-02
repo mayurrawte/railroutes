@@ -284,6 +284,7 @@ export const NETWORK_URLS = {
   india: 'https://cdn.jsdelivr.net/gh/mayurrawte/railroutes@networks-v1/railroute-ts/src/networks/india-v0.json',
   /** FRA/BTS North American Rail Network main sub-network (US, Canada, Mexico). Public domain. */
   northAmerica: 'https://cdn.jsdelivr.net/gh/mayurrawte/railroutes@networks-v1/railroute-ts/src/networks/north-america-v0.json',
+  china: 'https://cdn.jsdelivr.net/gh/mayurrawte/railroutes@networks-v1/railroute-ts/src/networks/china-v0.json',
   corridor: 'https://cdn.jsdelivr.net/gh/mayurrawte/railroutes@networks-v1/railroute-ts/src/networks/corridor-v0.json',
 } as const;
 

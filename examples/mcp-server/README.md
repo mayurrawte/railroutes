@@ -5,11 +5,11 @@
 
 A [Model Context Protocol](https://modelcontextprotocol.io) server that exposes
 [`railroute-ts`](https://github.com/mayurrawte/railroutes) to AI agents, so they
-can compute real railway routes across Europe, India and North America ("how far is Rotterdam to Genoa by
+can compute real railway routes across Europe, India, North America and China ("how far is Rotterdam to Genoa by
 rail, and does it cross a gauge break?") instead of guessing.
 
 It is a thin wrapper over the `railroute-ts` public API — no new routing logic.
-Everything runs locally over stdio; the Europe and India (OpenStreetMap) and
+Everything runs locally over stdio; the Europe, India and China (OpenStreetMap) and
 North America (FRA/BTS NARN) rail networks are bundled, so there are no API keys and no network calls.
 
 Pairs with [`@searoute-ts/mcp`](https://www.npmjs.com/package/@searoute-ts/mcp)
@@ -25,7 +25,7 @@ duration, gauge changes, train-ferry km, snap distances and the route GeoJSON.
 | Argument | Type | Notes |
 | --- | --- | --- |
 | `origin`, `destination` | station name / UIC code `string` or `[lon, lat]` | required |
-| `network` | `"europe"` \| `"corridor"` \| `"india"` \| `"north-america"` | default `europe`; `corridor` = Rhine-Alpine only, faster; `india` = Indian Railways mainline, accepts IR codes (NDLS, CSMT, MAS, HWH); `north-america` = US/Canada/Mexico (FRA NARN, coordinates only) |
+| `network` | `"europe"` \| `"corridor"` \| `"india"` \| `"north-america"` \| `"china"` | default `europe`; `corridor` = Rhine-Alpine only, faster; `india` = Indian Railways mainline, accepts IR codes (NDLS, CSMT, MAS, HWH); `north-america` = US/Canada/Mexico (FRA NARN, coordinates only); `china` = mainland China incl. HSR (coordinates only) |
 | `speedKmh` | number | fills an estimated duration in hours |
 | `electrifiedOnly` | boolean | only electrified track |
 | `ferries` | boolean | `false` forbids train ferries (Messina, Rostock–Trelleborg …) |

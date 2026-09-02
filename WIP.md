@@ -3,6 +3,12 @@
 _Updated: 2026-09-02_
 
 ## Current state
+- **2026-09-02 — #12 China DONE (in 0.2.0, unpublished)**: 12 Overpass tiles (western boxes split; mirrors
+  overpass.kumi.systems / lz4 as fallback — main instance 504'd on the 30–40N/73–100E box), 298,319 ways →
+  12,445 edges / 3.97 MB / 0.83 MB gz → BUNDLED as `networks/china`. Package now 4.2 MB compressed / 25.6 MB
+  unpacked (5 networks). Accuracy: Shanghai–Beijing +2 %, Guangzhou–Beijing 0 %, Shenzhen–Wuhan +37 % (OSM tag
+  gap on Wuguang HSR?). No China stations. MCP has 'china'. Spec Phases 1–4 done; remaining #13 (tag
+  `networks-v1` on the release commit + CDN docs — README recipe already written) and #14 (showcase).
 - **2026-09-02 — #11 North America DONE (in 0.2.0, unpublished)**: `network/fetch-narn.py` pages the FRA/BTS
   NARN ArcGIS FeatureServer (NET IN ('M','F'), 95,951 arcs, ~3 min) into the raw-ways shape with FRA node ids
   as junctions; `build-network.py` honours `ferry=yes` way tags. Result 12,943 edges / 4.24 MB / 0.95 MB gz →

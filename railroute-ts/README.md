@@ -18,14 +18,15 @@ npm install railroute-ts
 
 **🗺️ [Try the interactive demo](https://mayurrawte.is-a.dev/railroutes/)** — click two points in Europe and see the rail route, computed in your browser.
 
-**Status: v0.2.** Four bundled networks: **Europe-wide** (35–72N, 10W–32E —
+**Status: v0.2.** Five bundled networks: **Europe** (35–72N, 10W–32E —
 40,693 edges, 1.46 MB gzipped), **India** (Indian Railways mainline — 6,858
 edges, 0.28 MB gzipped, routes by IR station codes), **North America** (US +
 Canada + Mexico from the FRA/BTS North American Rail Network — 12,943 edges,
-0.95 MB gzipped, public domain) and the lighter Rhine-Alpine corridor. Verified
-against real itineraries: Lisbon→Warsaw, London→Vienna via the Channel Tunnel,
-New Delhi→Mumbai CSMT, Los Angeles→Chicago, Vancouver→Toronto. China is next
-([roadmap](#roadmap)). The package installs at 3.4 MB compressed.
+0.95 MB gzipped, public domain), **China** (mainline incl. high-speed — 12,445
+edges, 0.83 MB gzipped) and the lighter Rhine-Alpine corridor. Verified against
+real itineraries: Lisbon→Warsaw, London→Vienna via the Channel Tunnel, New
+Delhi→Mumbai CSMT, Los Angeles→Chicago, Shanghai→Beijing, Guangzhou→Beijing.
+The package installs at 4.2 MB compressed.
 
 ```ts
 import { railRoute } from 'railroute-ts';
@@ -153,6 +154,26 @@ ownership are in the source but not (yet) modelled. All edges are standard
 gauge; the source has no electrification field, so `electrifiedOnly` is a no-op
 on this network. No station codes yet — pass coordinates.
 
+### China — mainline and high-speed
+
+```ts
+import { railRoute } from 'railroute-ts';
+import { CHINA_NETWORK } from 'railroute-ts/networks/china';
+
+railRoute([121.47, 31.23], [116.4, 39.9], { network: CHINA_NETWORK });   // Shanghai → Beijing ≈ 1,347 km (Jinghu HSR: 1,318 km)
+railRoute([113.26, 23.13], [116.4, 39.9], { network: CHINA_NETWORK });   // Guangzhou → Beijing ≈ 2,302 km (Jingguang: 2,298 km)
+railRoute([106.55, 29.56], [82.57, 45.17], { network: CHINA_NETWORK });  // Chongqing → Alashankou ≈ 3,476 km — the China–Europe land-bridge exit
+```
+
+OSM `usage=main` for China (bbox 73–135E, 18–54N — connected lines in
+neighbouring countries inside the box come along). Conventional and high-speed
+alignments are both present, so the shortest path may pick an HSR alignment;
+trunk corridors verify within a few percent (Shanghai–Beijing +2 %,
+Guangzhou–Beijing 0 %, Beijing–Harbin +4 %). Where OSM misses a mainline tag the
+route detours (Shanghai–Chengdu +13 %, Shenzhen–Wuhan +37 % today). Standard
+gauge with real `electrified` tags. No station codes — route by coordinates;
+Chinese station names are on the roadmap.
+
 ### Gauge, electrification, ferries
 
 ```ts
@@ -188,7 +209,7 @@ jsDelivr, for browsers and edge runtimes that would rather fetch on demand:
 
 ```ts
 import { railRoute, loadNetwork, NETWORK_URLS } from 'railroute-ts';
-const network = await loadNetwork(NETWORK_URLS.northAmerica);   // or .europe / .india / .corridor
+const network = await loadNetwork(NETWORK_URLS.northAmerica);   // or .europe / .india / .china / .corridor
 railRoute([-118.24, 34.05], [-87.63, 41.88], { network });
 ```
 
@@ -222,13 +243,14 @@ claude mcp add railroute -- npx -y @railroute-ts/mcp
 
 ## Roadmap
 
-Shipped in v0.1–0.2: Europe, India and North America networks, UIC/IR station-code inputs, gauge-break and
+Shipped in v0.1–0.2: Europe, India, North America and China networks, UIC/IR station-code inputs, gauge-break and
 electrification awareness, train-ferry links, K-shortest alternatives, multi-leg
 itineraries, snap-distance guard.
 
 - **MCP server** (`@railroute-ts/mcp`) so AI agents can call `rail_route` — see [`examples/mcp-server`](https://github.com/mayurrawte/railroutes/tree/main/examples/mcp-server)
-- China network — [design](https://github.com/mayurrawte/railroutes/blob/main/docs/superpowers/specs/2026-09-02-global-networks-design.md), issue [#12](https://github.com/mayurrawte/railroutes/issues/12)
-- Station codes for North America (Amtrak/VIA) and China; trackage-rights-aware routing on NARN
+- Station names/codes for North America (Amtrak/VIA) and China; trackage-rights-aware routing on NARN
+- `highspeed` edge flag so HSR vs conventional can be filtered
+- Further regions via the same pipeline ([design](https://github.com/mayurrawte/railroutes/blob/main/docs/superpowers/specs/2026-09-02-global-networks-design.md)): Japan, Russia/Central Asia (1520 mm), Australia, Brazil
 - Station fallback where OSM lacks `uic_ref` (Portugal, Sweden)
 - Shareable URL state in the demo
 

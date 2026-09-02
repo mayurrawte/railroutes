@@ -22,7 +22,7 @@ export function createServer(): McpServer {
     {
       title: 'Shortest rail route',
       description:
-        'Compute the shortest railway route between two points in Europe, India or North America (station names like "Wien Hauptbahnhof", UIC codes, Indian Railways codes like NDLS/CSMT, or [lon, lat]; pick network: "europe" | "corridor" | "india" | "north-america"). Returns distance in km, optional duration, gauge changes, train-ferry km and the route GeoJSON. Options: electrified-only, no ferries, gauge-break penalty. Pairs with the searoute MCP server for multimodal sea + rail freight distance.',
+        'Compute the shortest railway route between two points in Europe, India, North America or China (station names like "Wien Hauptbahnhof", UIC codes, Indian Railways codes like NDLS/CSMT, or [lon, lat]; pick network: "europe" | "corridor" | "india" | "north-america" | "china"). Returns distance in km, optional duration, gauge changes, train-ferry km and the route GeoJSON. Options: electrified-only, no ferries, gauge-break penalty. Pairs with the searoute MCP server for multimodal sea + rail freight distance.',
       inputSchema: railRouteInputSchema,
     },
     async (args) => runRailRoute(args),
