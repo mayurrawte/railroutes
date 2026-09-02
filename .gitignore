@@ -13,3 +13,4 @@ network/*-raw.json
 network/*-ferries.json
 !network/rail-ferries.json
 network/fetch-*.log
+npmtok.txt

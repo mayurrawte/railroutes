@@ -1,7 +1,7 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.mayurrawte/railroute",
-  "description": "Real rail routes across Europe: distance, duration, gauge breaks, ferries, GeoJSON. Station names/UIC codes.",
+  "description": "Rail routes for Europe, India, North America, China: distance, gauge breaks, ferries, GeoJSON.",
   "repository": {
     "url": "https://github.com/mayurrawte/railroutes",
     "source": "github"
