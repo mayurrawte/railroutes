@@ -53,7 +53,7 @@
   "description": "Shortest rail route between two points — TypeScript rail routing over OpenStreetMap/NARN networks. Core library; install a @railroute-ts/<region> data package (europe, india, north-america, china).",
   "devDependencies": {
     "@types/node": "^26.2.0",
-    "typescript": "^7.0.2",
+    "typescript": "^5.9.0",
     "vitest": "^4.1.11"
   },
   "type": "module",
