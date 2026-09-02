@@ -20,8 +20,8 @@ npm install railroute-ts @railroute-ts/europe    # core + the region(s) you need
 |---|---|---|---|
 | [`@railroute-ts/europe`](https://www.npmjs.com/package/@railroute-ts/europe) | Europe, 35–72N 10W–32E (OSM) | 12,886 with UIC codes | 1.46 MB |
 | [`@railroute-ts/india`](https://www.npmjs.com/package/@railroute-ts/india) | Indian Railways mainline (OSM) | 8,476 with IR codes (NDLS, CSMT …) | 0.28 MB |
-| [`@railroute-ts/north-america`](https://www.npmjs.com/package/@railroute-ts/north-america) | US + Canada + Mexico (FRA/BTS NARN, public domain) | — | 0.95 MB |
-| [`@railroute-ts/china`](https://www.npmjs.com/package/@railroute-ts/china) | Mainland China incl. HSR (OSM) | — | 0.83 MB |
+| [`@railroute-ts/north-america`](https://www.npmjs.com/package/@railroute-ts/north-america) | US + Canada + Mexico (FRA/BTS NARN, public domain) | 638 Amtrak/VIA stations by name | 0.95 MB |
+| [`@railroute-ts/china`](https://www.npmjs.com/package/@railroute-ts/china) | Mainland China incl. HSR (OSM) | 9,326 stations by English name | 0.83 MB |
 
 The core package is ~0.4 MB compressed (almost all of it the Rhine-Alpine
 corridor sample network); install the regions you route in. Data packages are versioned by
@@ -159,7 +159,7 @@ miles (LA–Chicago −4 %, New York–Chicago −6 %, Seattle–LA −9 %) beca
 graph takes the geometrically shortest owner-agnostic path; trackage rights and
 ownership are in the source but not (yet) modelled. All edges are standard
 gauge; the source has no electrification field, so `electrifiedOnly` is a no-op
-on this network. No station codes yet — pass coordinates.
+on this network. Stations: 638 Amtrak/VIA stations by name (`NORTH_AMERICA_STATIONS`).
 
 ### China — mainline and high-speed
 
@@ -178,8 +178,8 @@ alignments are both present, so the shortest path may pick an HSR alignment;
 trunk corridors verify within a few percent (Shanghai–Beijing +2 %,
 Guangzhou–Beijing 0 %, Beijing–Harbin +4 %). Where OSM misses a mainline tag the
 route detours (Shanghai–Chengdu +13 %, Shenzhen–Wuhan +37 % today). Standard
-gauge with real `electrified` tags. No station codes — route by coordinates;
-Chinese station names are on the roadmap.
+gauge with real `electrified` tags. Stations: 9,326 heavy-rail stations by English
+name (`CHINA_STATIONS`, e.g. `'Shanghai-Hongqiao'`, `'Beijing'`).
 
 ### Gauge, electrification, ferries
 
@@ -255,7 +255,7 @@ electrification awareness, train-ferry links, K-shortest alternatives, multi-leg
 itineraries, snap-distance guard.
 
 - **MCP server** (`@railroute-ts/mcp`) so AI agents can call `rail_route` — see [`examples/mcp-server`](https://github.com/mayurrawte/railroutes/tree/main/examples/mcp-server)
-- Station names/codes for North America (Amtrak/VIA) and China; trackage-rights-aware routing on NARN
+- Trackage-rights-aware routing on NARN (#19)
 - `highspeed` edge flag so HSR vs conventional can be filtered
 - Further regions via the same pipeline ([design](https://github.com/mayurrawte/railroutes/blob/main/docs/superpowers/specs/2026-09-02-global-networks-design.md)): Japan, Russia/Central Asia (1520 mm), Australia, Brazil
 - Station fallback where OSM lacks `uic_ref` (Portugal, Sweden)

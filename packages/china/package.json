@@ -1,6 +1,6 @@
 {
   "name": "@railroute-ts/china",
-  "version": "2026.9.0",
+  "version": "2026.9.1",
   "description": "China rail network data for railroute-ts — Mainland China mainline including high-speed lines, from OpenStreetMap. Coordinates only — no station codes yet.",
   "type": "module",
   "main": "./dist/src/index.js",

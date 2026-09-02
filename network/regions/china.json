@@ -78,5 +78,8 @@
   ],
   "way_filter": "[\"railway\"=\"rail\"][\"usage\"=\"main\"]",
   "ferries": true,
-  "stations": null
+  "stations": {
+    "code_tag": "name:en",
+    "extra_filter": "[\"railway\"=\"station\"][\"name:en\"]"
+  }
 }

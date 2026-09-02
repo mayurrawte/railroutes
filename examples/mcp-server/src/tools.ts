@@ -2,8 +2,8 @@
 // ("Wien Hauptbahnhof") or codes (UIC / Indian Railways).
 import { EUROPE_NETWORK, EUROPE_STATIONS } from '@railroute-ts/europe';
 import { INDIA_NETWORK, INDIA_STATIONS } from '@railroute-ts/india';
-import { NORTH_AMERICA_NETWORK } from '@railroute-ts/north-america';
-import { CHINA_NETWORK } from '@railroute-ts/china';
+import { NORTH_AMERICA_NETWORK, NORTH_AMERICA_STATIONS } from '@railroute-ts/north-america';
+import { CHINA_NETWORK, CHINA_STATIONS } from '@railroute-ts/china';
 import { CORRIDOR_NETWORK } from 'railroute-ts/networks/corridor';
 import { CORRIDOR_STATIONS } from 'railroute-ts/stations/corridor';
 import {
@@ -41,7 +41,7 @@ const networkSchema = z
   .enum(['europe', 'corridor', 'india', 'north-america', 'china'])
   .default('europe')
   .describe(
-    '"europe": the whole continent (35–72N, 10W–32E). "corridor": the lighter Rhine-Alpine corridor (Rotterdam–Genoa), faster. "india": Indian Railways mainline (accepts IR station codes such as NDLS, CSMT, MAS, HWH). "north-america": US + Canada + Mexico mainline from the FRA/BTS North American Rail Network (coordinates only, no station codes yet). "china": mainland China mainline incl. HSR (coordinates only).',
+    '"europe": the whole continent (35–72N, 10W–32E). "corridor": the lighter Rhine-Alpine corridor (Rotterdam–Genoa), faster. "india": Indian Railways mainline (accepts IR station codes such as NDLS, CSMT, MAS, HWH). "north-america": US + Canada + Mexico mainline from the FRA/BTS North American Rail Network (Amtrak/VIA station names such as "Chicago Union Station"). "china": mainland China mainline incl. HSR (English station names such as "Shanghai-Hongqiao").',
   );
 
 type NetworkName = 'europe' | 'corridor' | 'india' | 'north-america' | 'china';
@@ -56,7 +56,9 @@ const NETWORKS: Record<NetworkName, RailNetwork> = {
 registerStations(EUROPE_STATIONS);
 registerStations(CORRIDOR_STATIONS);
 registerStations(INDIA_STATIONS);
-const ALL_STATIONS = [...EUROPE_STATIONS, ...INDIA_STATIONS];
+registerStations(NORTH_AMERICA_STATIONS);
+registerStations(CHINA_STATIONS);
+const ALL_STATIONS = [...EUROPE_STATIONS, ...INDIA_STATIONS, ...NORTH_AMERICA_STATIONS, ...CHINA_STATIONS];
 
 const commonOptions = {
   network: networkSchema,
@@ -225,6 +227,6 @@ export function runRailStationSearch(args: RailStationSearchArgs): ToolResult {
 
   const text = matches.length
     ? `${matches.length} station(s):\n` + matches.map((m) => `- ${m.name} (UIC ${m.code}) @ [${m.coord[0]}, ${m.coord[1]}]`).join('\n')
-    : `No station matches "${args.query}". Coverage follows OSM tagging (uic_ref in Europe — weak in Portugal and Sweden; ref = IR code in India); pass [lon, lat] instead.`;
+    : `No station matches "${args.query}". Coverage follows OSM tagging (uic_ref in Europe — weak in Portugal and Sweden; ref = IR code in India; Amtrak/VIA station names in North America; English names in China); pass [lon, lat] instead.`;
   return { content: [{ type: 'text', text }], structuredContent: { count: matches.length, matches } };
 }

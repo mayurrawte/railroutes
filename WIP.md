@@ -3,6 +3,10 @@
 _Updated: 2026-09-02_
 
 ## Current state
+- **2026-09-02 #16 stations for NA + China (packs → 2026.9.1, mcp → 0.1.1, UNPUBLISHED)**: NA = 638 Amtrak/VIA
+  stations via OSM `network~Amtrak|VIA` (only 26 have ref:amtrak; `ref` is useless there), keyed by name.
+  China = 9,326 heavy-rail stations via `name:en`, metro/light-rail filtered in build-stations.py. OSM names are
+  transliterations ('Shanghai-Hongqiao', 'Shanghainan'). `fetch-stations.py` = stations-only refetch (nwr + center).
 - **2026-09-02 demo region switcher (#15)**: examples/web-demo lazy-loads @railroute-ts/{india,north-america,china}
   (code-split chunks 2–4 MB, Europe stays in the main bundle), coverage outline from network.metadata.bbox,
   per-region presets (India presets use IR codes), ?region= URL state. vite build needs

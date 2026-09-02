@@ -41,7 +41,7 @@ const REGIONS: Record<RegionKey, { label: string; center: LngLat; zoom: number; 
   'north-america': {
     label: 'North America', center: [-97, 42], zoom: 3.3,
     presets: [
-      { label: 'Los Angeles → Chicago', a: [-118.24, 34.05], b: [-87.63, 41.88] },
+      { label: 'Los Angeles → Chicago', a: 'Los Angeles Union Station', b: 'Chicago Union Station' },
       { label: 'New York → Chicago', a: [-74.0, 40.71], b: [-87.63, 41.88] },
       { label: 'Vancouver → Toronto', a: [-123.1, 49.28], b: [-79.38, 43.65] },
       { label: 'Seattle → Los Angeles', a: [-122.33, 47.6], b: [-118.24, 34.05] },
@@ -49,20 +49,20 @@ const REGIONS: Record<RegionKey, { label: string; center: LngLat; zoom: number; 
     ],
     load: async () => {
       const m = await import('@railroute-ts/north-america');
-      return { network: m.NORTH_AMERICA_NETWORK, stations: [] };
+      return { network: m.NORTH_AMERICA_NETWORK, stations: m.NORTH_AMERICA_STATIONS };
     },
   },
   china: {
     label: 'China', center: [105, 35], zoom: 3.6,
     presets: [
-      { label: 'Shanghai → Beijing', a: [121.47, 31.23], b: [116.4, 39.9] },
+      { label: 'Shanghai-Hongqiao → Beijing', a: 'Shanghai-Hongqiao', b: 'Beijing' },
       { label: 'Guangzhou → Beijing', a: [113.26, 23.13], b: [116.4, 39.9] },
       { label: 'Chongqing → Alashankou', a: [106.55, 29.56], b: [82.57, 45.17] },
       { label: 'Beijing → Harbin', a: [116.4, 39.9], b: [126.53, 45.8] },
     ],
     load: async () => {
       const m = await import('@railroute-ts/china');
-      return { network: m.CHINA_NETWORK, stations: [] };
+      return { network: m.CHINA_NETWORK, stations: m.CHINA_STATIONS };
     },
   },
 };
@@ -294,7 +294,7 @@ el<HTMLButtonElement>('swap').onclick = () => {
 const presetsEl = el<HTMLDivElement>('presets');
 function resolvePreset(p: LngLat | string): [LngLat, string] {
   if (typeof p !== 'string') return [p, ''];
-  const s = region.stations.find((st) => st.code === p);
+  const s = region.stations.find((st) => st.code === p || st.name.toLowerCase() === p.toLowerCase());
   return s ? [s.coord as LngLat, s.name] : [[0, 0], p];
 }
 function loadPresets(presets: Preset[]) {

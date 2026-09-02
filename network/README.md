@@ -13,7 +13,8 @@ python3 fetch-region.py regions/india.json
 python3 build-network.py india-raw.json ../packages/india/data/network.json - regions/india.json
 #    3rd arg: ferries file or '-' ; 4th arg: region config → writes a `metadata` block
 
-# 3. stations (code tag per region: uic_ref for Europe, ref = IR code for India)
+# 3. stations (key per region: uic_ref Europe, ref = IR code India, name for Amtrak/VIA, name:en China)
+#    stations-only refetch: python3 fetch-stations.py regions/<name>.json  (nwr + out center)
 python3 build-stations.py india-stations-raw.json ../packages/india/data/stations.json ref
 ```
 

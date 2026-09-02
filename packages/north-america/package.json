@@ -1,6 +1,6 @@
 {
   "name": "@railroute-ts/north-america",
-  "version": "2026.9.0",
+  "version": "2026.9.1",
   "description": "North America rail network data for railroute-ts — US, Canada and Mexico mainline from the FRA/BTS North American Rail Network (main sub-network + rail ferries). Public domain. Coordinates only — no station codes yet.",
   "type": "module",
   "main": "./dist/src/index.js",
