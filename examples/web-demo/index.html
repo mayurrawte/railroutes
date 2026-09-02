@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>railroute-ts — interactive rail routing demo</title>
-    <meta name="description" content="Click two points or pick two stations anywhere in Europe and get the shortest rail route over the OpenStreetMap railway network. Powered by railroute-ts." />
+    <meta name="description" content="Click two points or pick two stations in Europe, India, North America or China and get the shortest rail route over the OpenStreetMap / FRA railway networks. Powered by railroute-ts." />
   </head>
   <body>
     <div id="map"></div>
@@ -13,6 +13,8 @@
       <p class="sub">Shortest <em>rail</em> route, computed in your browser.<br/>
         <a href="https://github.com/mayurrawte/railroutes" target="_blank" rel="noopener">GitHub</a> ·
         <a href="https://www.npmjs.com/package/railroute-ts" target="_blank" rel="noopener">npm</a></p>
+
+      <label class="row region">region <select id="region"></select></label>
 
       <div class="station-row">
         <input id="from" list="stations" placeholder="From station… (or click map)" autocomplete="off" />

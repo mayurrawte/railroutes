@@ -3,6 +3,10 @@
 _Updated: 2026-09-02_
 
 ## Current state
+- **2026-09-02 demo region switcher (#15)**: examples/web-demo lazy-loads @railroute-ts/{india,north-america,china}
+  (code-split chunks 2–4 MB, Europe stays in the main bundle), coverage outline from network.metadata.bbox,
+  per-region presets (India presets use IR codes), ?region= URL state. vite build needs
+  NODE_OPTIONS=--max-old-space-size=6144 (four multi-MB JSON modules). Issues #16–#19 filed for the rest.
 - **2026-09-02 PUBLISHED**: railroute-ts@0.2.0, @railroute-ts/{europe,india,north-america,china}@2026.9.0,
   @railroute-ts/mcp@0.1.0 — all on npm (granular token w/ 2FA bypass, removed from ~/.npmrc afterwards; Mayur
   to revoke). GitHub release v0.2.0. MCP Registry: server.json description must be ≤ 100 chars.

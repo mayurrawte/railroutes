@@ -5,13 +5,16 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "tsc --noEmit && NODE_OPTIONS=--max-old-space-size=6144 vite build",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@railroute-ts/china": "^2026.9.0",
+    "@railroute-ts/europe": "^2026.9.0",
+    "@railroute-ts/india": "^2026.9.0",
+    "@railroute-ts/north-america": "^2026.9.0",
     "maplibre-gl": "^4.7.1",
-    "railroute-ts": "^0.2.0",
-    "@railroute-ts/europe": "^2026.9.0"
+    "railroute-ts": "^0.2.0"
   },
   "devDependencies": {
     "typescript": "^5.7.0",

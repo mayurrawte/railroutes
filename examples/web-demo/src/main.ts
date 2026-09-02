@@ -1,25 +1,82 @@
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { NoRouteError, railRoute, railRouteAlternatives, registerStations } from 'railroute-ts';
+import type { RailNetwork, Station } from 'railroute-ts';
 import { EUROPE_NETWORK, EUROPE_STATIONS } from '@railroute-ts/europe';
-
-registerStations(EUROPE_STATIONS);
 import './style.css';
 
 type LngLat = [number, number];
+type Preset = { label: string; a: LngLat | string; b: LngLat | string };
+type RegionKey = 'europe' | 'india' | 'north-america' | 'china';
+type RegionData = { network: RailNetwork; stations: Station[] };
 
-// the bundled network's coverage (fetch bbox of the Europe pipeline)
-const COVERAGE = { minLon: -10, maxLon: 32, minLat: 35, maxLat: 72 };
-const inCoverage = ([lon, lat]: LngLat) =>
-  lon >= COVERAGE.minLon && lon <= COVERAGE.maxLon && lat >= COVERAGE.minLat && lat <= COVERAGE.maxLat;
+// Europe ships in the main bundle; the other data packages are code-split and
+// fetched on demand (each is 0.3–1 MB gzipped).
+const REGIONS: Record<RegionKey, { label: string; center: LngLat; zoom: number; presets: Preset[]; load: () => Promise<RegionData> }> = {
+  europe: {
+    label: 'Europe', center: [9, 49], zoom: 4.2,
+    presets: [
+      { label: 'Rotterdam → Genoa', a: [4.47, 51.92], b: [8.92, 44.41] },
+      { label: 'London → Vienna', a: [-0.12, 51.53], b: [16.37, 48.19] },
+      { label: 'Stockholm → Rome', a: [18.06, 59.33], b: [12.5, 41.9] },
+      { label: 'Lisbon → Warsaw', a: [-9.14, 38.71], b: [21.0, 52.23] },
+      { label: 'Basel → Milan', a: [7.59, 47.55], b: [9.19, 45.49] },
+    ],
+    load: async () => ({ network: EUROPE_NETWORK, stations: EUROPE_STATIONS }),
+  },
+  india: {
+    label: 'India', center: [79, 22.5], zoom: 4.3,
+    presets: [
+      { label: 'New Delhi → Mumbai CSMT', a: 'NDLS', b: 'CSMT' },
+      { label: 'Howrah → Chennai', a: 'HWH', b: 'MAS' },
+      { label: 'Delhi → Baramulla', a: 'NDLS', b: 'BRML' },
+      { label: 'Ahmedabad → Dibrugarh', a: 'ADI', b: 'DBRG' },
+      { label: 'Bengaluru → Kanyakumari', a: 'SBC', b: 'CAPE' },
+    ],
+    load: async () => {
+      const m = await import('@railroute-ts/india');
+      return { network: m.INDIA_NETWORK, stations: m.INDIA_STATIONS };
+    },
+  },
+  'north-america': {
+    label: 'North America', center: [-97, 42], zoom: 3.3,
+    presets: [
+      { label: 'Los Angeles → Chicago', a: [-118.24, 34.05], b: [-87.63, 41.88] },
+      { label: 'New York → Chicago', a: [-74.0, 40.71], b: [-87.63, 41.88] },
+      { label: 'Vancouver → Toronto', a: [-123.1, 49.28], b: [-79.38, 43.65] },
+      { label: 'Seattle → Los Angeles', a: [-122.33, 47.6], b: [-118.24, 34.05] },
+      { label: 'Laredo → Mexico City', a: [-99.5, 27.5], b: [-99.13, 19.43] },
+    ],
+    load: async () => {
+      const m = await import('@railroute-ts/north-america');
+      return { network: m.NORTH_AMERICA_NETWORK, stations: [] };
+    },
+  },
+  china: {
+    label: 'China', center: [105, 35], zoom: 3.6,
+    presets: [
+      { label: 'Shanghai → Beijing', a: [121.47, 31.23], b: [116.4, 39.9] },
+      { label: 'Guangzhou → Beijing', a: [113.26, 23.13], b: [116.4, 39.9] },
+      { label: 'Chongqing → Alashankou', a: [106.55, 29.56], b: [82.57, 45.17] },
+      { label: 'Beijing → Harbin', a: [116.4, 39.9], b: [126.53, 45.8] },
+    ],
+    load: async () => {
+      const m = await import('@railroute-ts/china');
+      return { network: m.CHINA_NETWORK, stations: [] };
+    },
+  },
+};
 
-const PRESETS: Array<{ label: string; a: LngLat; b: LngLat }> = [
-  { label: 'Rotterdam → Genoa', a: [4.47, 51.92], b: [8.92, 44.41] },
-  { label: 'London → Vienna', a: [-0.12, 51.53], b: [16.37, 48.19] },
-  { label: 'Stockholm → Rome', a: [18.06, 59.33], b: [12.5, 41.9] },
-  { label: 'Lisbon → Warsaw', a: [-9.14, 38.71], b: [21.0, 52.23] },
-  { label: 'Basel → Milan', a: [7.59, 47.55], b: [9.19, 45.49] },
-];
+const params = new URLSearchParams(location.search);
+let regionKey: RegionKey = (params.get('region') as RegionKey) in REGIONS ? (params.get('region') as RegionKey) : 'europe';
+let region: RegionData = { network: EUROPE_NETWORK, stations: EUROPE_STATIONS };
+registerStations(EUROPE_STATIONS);
+
+const bboxOf = (n: RailNetwork): [number, number, number, number] => n.metadata?.bbox ?? [-10, 35, 32, 72];
+const inCoverage = ([lon, lat]: LngLat) => {
+  const [minLon, minLat, maxLon, maxLat] = bboxOf(region.network);
+  return lon >= minLon && lon <= maxLon && lat >= minLat && lat <= maxLat;
+};
 
 const map = new maplibregl.Map({
   container: 'map',
@@ -36,8 +93,8 @@ const map = new maplibregl.Map({
     },
     layers: [{ id: 'basemap', type: 'raster', source: 'basemap' }],
   },
-  center: [9, 49],
-  zoom: 4.2,
+  center: REGIONS[regionKey].center,
+  zoom: REGIONS[regionKey].zoom,
 });
 
 const el = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -48,17 +105,34 @@ const speedVEl = el<HTMLSpanElement>('speedv');
 const fromEl = el<HTMLInputElement>('from');
 const toEl = el<HTMLInputElement>('to');
 
-// ---- stations: datalist search over the bundled 12,886 ----
-const byName = new Map(EUROPE_STATIONS.map((s) => [s.name.toLowerCase(), s]));
+// ---- stations: datalist search over the current region's dataset ----
+let byName = new Map<string, Station>();
 const datalist = el<HTMLDataListElement>('stations');
-{
+function loadStations(stations: Station[]) {
+  byName = new Map(stations.map((s) => [s.name.toLowerCase(), s]));
+  datalist.replaceChildren();
   const frag = document.createDocumentFragment();
-  for (const s of EUROPE_STATIONS) {
+  for (const s of stations) {
     const opt = document.createElement('option');
     opt.value = s.name;
     frag.appendChild(opt);
   }
   datalist.appendChild(frag);
+  const hasStations = stations.length > 0;
+  fromEl.placeholder = hasStations ? 'From station… (or click map)' : 'Click the map (no station codes for this region yet)';
+  toEl.placeholder = hasStations ? 'To station…' : 'Click the map for the destination';
+  fromEl.disabled = toEl.disabled = !hasStations;
+}
+loadStations(EUROPE_STATIONS);
+
+// ---- coverage outline ----
+function setCoverage(n: RailNetwork) {
+  const [minLon, minLat, maxLon, maxLat] = bboxOf(n);
+  (map.getSource('coverage') as maplibregl.GeoJSONSource | undefined)?.setData({
+    type: 'Feature',
+    properties: {},
+    geometry: { type: 'Polygon', coordinates: [[[minLon, minLat], [maxLon, minLat], [maxLon, maxLat], [minLon, maxLat], [minLon, minLat]]] },
+  });
 }
 
 // ---- endpoints (from map clicks, station pickers, or presets) ----
@@ -104,10 +178,11 @@ function route() {
   const outside = [a, b].filter((p) => !inCoverage(p!));
   if (outside.length) {
     setRouteData([]);
+    const [minLon, minLat, maxLon, maxLat] = bboxOf(region.network);
     resultEl.innerHTML =
-      `<strong>Outside the bundled network.</strong> This demo ships the Europe network ` +
-      `(35–72°N, 10°W–32°E). Points elsewhere would snap to the nearest European track — ` +
-      `world coverage is on the <a href="https://github.com/mayurrawte/railroutes/issues" target="_blank" rel="noopener">roadmap</a> via <code>loadNetwork(url)</code>.`;
+      `<strong>Outside the ${REGIONS[regionKey].label} network</strong> (${minLat}–${maxLat}°N, ${minLon}–${maxLon}°E, dashed outline). ` +
+      `Switch region above — Europe, India, North America and China are available; more via ` +
+      `<a href="https://github.com/mayurrawte/railroutes/issues" target="_blank" rel="noopener">the roadmap</a>.`;
     return;
   }
   resultEl.textContent = 'Routing…';
@@ -118,8 +193,8 @@ function route() {
       const t0 = performance.now();
       const routes =
         k === 1
-          ? [railRoute(a, b, { network: EUROPE_NETWORK, speedKmh })]
-          : railRouteAlternatives(a, b, { network: EUROPE_NETWORK, speedKmh, k });
+          ? [railRoute(a, b, { network: region.network, speedKmh })]
+          : railRouteAlternatives(a, b, { network: region.network, speedKmh, k });
       const ms = Math.round(performance.now() - t0);
       setRouteData(routes.map((r, i) => ({ ...r, properties: { ...r.properties, rank: i } })));
       const best = routes[0];
@@ -172,6 +247,14 @@ map.on('click', (e) => {
 });
 
 map.on('load', () => {
+  map.addSource('coverage', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+  map.addLayer({
+    id: 'coverage-outline',
+    type: 'line',
+    source: 'coverage',
+    paint: { 'line-color': '#64748b', 'line-width': 1.5, 'line-dasharray': [3, 3], 'line-opacity': 0.7 },
+  });
+  setCoverage(region.network);
   map.addSource('route', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
   map.addLayer({
     id: 'route-alts',
@@ -209,17 +292,72 @@ el<HTMLButtonElement>('swap').onclick = () => {
 };
 
 const presetsEl = el<HTMLDivElement>('presets');
-for (const p of PRESETS) {
-  const btn = document.createElement('button');
-  btn.textContent = p.label;
-  btn.onclick = () => {
-    setPoint(0, p.a, '');
-    setPoint(1, p.b, '');
-    clickTurn = 0;
-    route();
-  };
-  presetsEl.appendChild(btn);
+function resolvePreset(p: LngLat | string): [LngLat, string] {
+  if (typeof p !== 'string') return [p, ''];
+  const s = region.stations.find((st) => st.code === p);
+  return s ? [s.coord as LngLat, s.name] : [[0, 0], p];
 }
+function loadPresets(presets: Preset[]) {
+  presetsEl.replaceChildren();
+  for (const p of presets) {
+    const btn = document.createElement('button');
+    btn.textContent = p.label;
+    btn.onclick = () => {
+      const [a, la] = resolvePreset(p.a);
+      const [b, lb] = resolvePreset(p.b);
+      setPoint(0, a, la);
+      setPoint(1, b, lb);
+      clickTurn = 0;
+      route();
+    };
+    presetsEl.appendChild(btn);
+  }
+}
+loadPresets(REGIONS[regionKey].presets);
+
+// ---- region switcher ----
+const regionEl = el<HTMLSelectElement>('region');
+for (const [key, r] of Object.entries(REGIONS)) {
+  const opt = document.createElement('option');
+  opt.value = key;
+  opt.textContent = r.label;
+  regionEl.appendChild(opt);
+}
+regionEl.value = regionKey;
+
+async function switchRegion(key: RegionKey) {
+  regionEl.disabled = true;
+  resultEl.textContent = `Loading the ${REGIONS[key].label} network…`;
+  try {
+    const data = await REGIONS[key].load();
+    regionKey = key;
+    region = data;
+    registerStations(data.stations);
+    loadStations(data.stations);
+    loadPresets(REGIONS[key].presets);
+    setCoverage(data.network);
+    setPoint(0, null, '');
+    setPoint(1, null, '');
+    setRouteData([]);
+    clickTurn = 0;
+    const url = new URL(location.href);
+    url.searchParams.set('region', key);
+    history.replaceState(null, '', url);
+    map.flyTo({ center: REGIONS[key].center, zoom: REGIONS[key].zoom, duration: 900 });
+    const meta = data.network.metadata;
+    resultEl.innerHTML =
+      `<strong>${REGIONS[key].label}</strong>: ${meta ? `${meta.edges.toLocaleString()} edges, ${meta.km.toLocaleString()} km of track` : 'loaded'}` +
+      (data.stations.length ? `, ${data.stations.length.toLocaleString()} stations` : ', coordinates only') +
+      `.<br/><span class="meta">Pick a preset, two stations, or click the map twice.</span>`;
+  } catch (e) {
+    resultEl.textContent = `Could not load ${REGIONS[key].label}: ${(e as Error).message}`;
+    regionEl.value = regionKey;
+  } finally {
+    regionEl.disabled = false;
+  }
+}
+regionEl.onchange = () => switchRegion(regionEl.value as RegionKey);
+if (regionKey !== 'europe') switchRegion(regionKey);
 
 altsEl.onchange = () => route();
 speedEl.oninput = () => {
