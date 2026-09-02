@@ -6,6 +6,7 @@ import 'railroute-ts/stations/corridor';
 import { EUROPE_NETWORK } from 'railroute-ts/networks/europe';
 import { CORRIDOR_NETWORK } from 'railroute-ts/networks/corridor';
 import { INDIA_NETWORK } from 'railroute-ts/networks/india';
+import { NORTH_AMERICA_NETWORK } from 'railroute-ts/networks/north-america';
 import {
   NoRouteError,
   SnapFailedError,
@@ -37,17 +38,18 @@ const pointSchema = z
   .describe('A station name / UIC code string, or a [longitude, latitude] coordinate pair.');
 
 const networkSchema = z
-  .enum(['europe', 'corridor', 'india'])
+  .enum(['europe', 'corridor', 'india', 'north-america'])
   .default('europe')
   .describe(
-    '"europe": the whole continent (35–72N, 10W–32E). "corridor": the lighter Rhine-Alpine corridor (Rotterdam–Genoa), faster. "india": Indian Railways mainline (accepts IR station codes such as NDLS, CSMT, MAS, HWH).',
+    '"europe": the whole continent (35–72N, 10W–32E). "corridor": the lighter Rhine-Alpine corridor (Rotterdam–Genoa), faster. "india": Indian Railways mainline (accepts IR station codes such as NDLS, CSMT, MAS, HWH). "north-america": US + Canada + Mexico mainline from the FRA/BTS North American Rail Network (coordinates only, no station codes yet).',
   );
 
-type NetworkName = 'europe' | 'corridor' | 'india';
+type NetworkName = 'europe' | 'corridor' | 'india' | 'north-america';
 const NETWORKS: Record<NetworkName, RailNetwork> = {
   europe: EUROPE_NETWORK,
   corridor: CORRIDOR_NETWORK,
   india: INDIA_NETWORK,
+  'north-america': NORTH_AMERICA_NETWORK,
 };
 
 const ALL_STATIONS = [...EUROPE_STATIONS, ...INDIA_STATIONS];

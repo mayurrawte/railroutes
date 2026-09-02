@@ -40,6 +40,10 @@ def way_props(tags):
     electrified = None if e is None else (e not in ('no', 'none'))
     return gauge, electrified
 
+def way_is_ferry(tags):
+    # NARN NET='F' arcs arrive pre-stitched with ferry=yes (no separate ferries file)
+    return tags.get('ferry') == 'yes' or tags.get('route') == 'ferry'
+
 d = json.load(open(SRC))
 ways = [w for w in d['elements'] if w.get('geometry') and w.get('nodes')]
 
@@ -52,15 +56,16 @@ for w in ways:
 edges = []
 for w in ways:
     gauge, elec = way_props(w.get('tags', {}))
+    fer = way_is_ferry(w.get('tags', {}))
     seg_n, seg_c = [], []
     for nid, g in zip(w['nodes'], w['geometry']):
         c = [round(g['lon'],4), round(g['lat'],4)]
         seg_n.append(nid); seg_c.append(c)
         if use[nid] > 1 and len(seg_n) > 1:
-            edges.append((seg_n[0], seg_n[-1], seg_c, gauge, elec))
+            edges.append((seg_n[0], seg_n[-1], seg_c, gauge, elec, fer))
             seg_n, seg_c = [nid], [c]
     if len(seg_n) > 1:
-        edges.append((seg_n[0], seg_n[-1], seg_c, gauge, elec))
+        edges.append((seg_n[0], seg_n[-1], seg_c, gauge, elec, fer))
 
 # train ferries: stitch BEFORE the component filter so islands (Sicily,
 # Scandinavia-via-ferry) join the main component through the ferry edges.

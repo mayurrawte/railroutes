@@ -6,10 +6,12 @@
 > routes) — together they cover multimodal sea + rail freight distance.
 > MIT licensed; network data © OpenStreetMap contributors (ODbL).
 
-Status: v0.2, on npm. Three bundled networks: Europe-wide (35–72N, 10W–32E),
+Status: v0.2, on npm. Four bundled networks: Europe-wide (35–72N, 10W–32E),
 India (Indian Railways mainline, routes by IR station codes such as NDLS/CSMT via
-`railroute-ts/networks/india` + `railroute-ts/stations/india`) and the lighter
-Rhine-Alpine corridor. Install: `npm install railroute-ts`.
+`railroute-ts/networks/india` + `railroute-ts/stations/india`), North America
+(US/Canada/Mexico from the FRA/BTS North American Rail Network, public domain,
+`railroute-ts/networks/north-america`) and the lighter Rhine-Alpine corridor.
+`NETWORK_URLS` + `loadNetwork(url)` fetch any of them from jsDelivr instead. Install: `npm install railroute-ts`.
 
 ## Usage
 

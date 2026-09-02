@@ -40,7 +40,12 @@
     "typescript",
     "searoute",
     "india",
-    "indian-railways"
+    "indian-railways",
+    "north-america",
+    "usa",
+    "canada",
+    "mexico",
+    "narn"
   ],
   "author": "Mayur Rawte",
   "license": "MIT",
@@ -80,6 +85,10 @@
     "./stations/india": {
       "types": "./dist/stations/india.d.ts",
       "import": "./dist/stations/india.js"
+    },
+    "./networks/north-america": {
+      "types": "./dist/networks/north-america.d.ts",
+      "import": "./dist/networks/north-america.js"
     }
   },
   "files": [

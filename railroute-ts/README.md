@@ -18,12 +18,14 @@ npm install railroute-ts
 
 **🗺️ [Try the interactive demo](https://mayurrawte.is-a.dev/railroutes/)** — click two points in Europe and see the rail route, computed in your browser.
 
-**Status: v0.2.** Three bundled networks: **Europe-wide** (35–72N, 10W–32E —
+**Status: v0.2.** Four bundled networks: **Europe-wide** (35–72N, 10W–32E —
 40,693 edges, 1.46 MB gzipped), **India** (Indian Railways mainline — 6,858
-edges, 0.28 MB gzipped, routes by IR station codes) and the lighter Rhine-Alpine
-corridor. Verified against real itineraries: Lisbon→Warsaw, London→Vienna via
-the Channel Tunnel, New Delhi→Mumbai CSMT, Howrah→Chennai. North America and
-China are next ([roadmap](#roadmap)).
+edges, 0.28 MB gzipped, routes by IR station codes), **North America** (US +
+Canada + Mexico from the FRA/BTS North American Rail Network — 12,943 edges,
+0.95 MB gzipped, public domain) and the lighter Rhine-Alpine corridor. Verified
+against real itineraries: Lisbon→Warsaw, London→Vienna via the Channel Tunnel,
+New Delhi→Mumbai CSMT, Los Angeles→Chicago, Vancouver→Toronto. China is next
+([roadmap](#roadmap)). The package installs at 3.4 MB compressed.
 
 ```ts
 import { railRoute } from 'railroute-ts';
@@ -128,6 +130,29 @@ Gauge is carried per edge (broad 1676 mm dominates; remaining metre-gauge shows
 up as `gaugeChanges`). Coverage box: 68–95E, 8–34N; Sri Lanka, Pakistan and
 Bangladesh mainlines are not connected to the Indian graph.
 
+### North America — US, Canada, Mexico (FRA/BTS NARN)
+
+```ts
+import { railRoute } from 'railroute-ts';
+import { NORTH_AMERICA_NETWORK } from 'railroute-ts/networks/north-america';
+
+railRoute([-118.24, 34.05], [-87.63, 41.88], { network: NORTH_AMERICA_NETWORK, speedKmh: 40 });
+// Los Angeles → Chicago ≈ 3,399 km (BNSF Transcon timetable: 2,200 mi / 3,540 km), ~85 h at intermodal speed
+railRoute([-123.1, 49.28], [-79.38, 43.65], { network: NORTH_AMERICA_NETWORK }); // Vancouver → Toronto ≈ 4,275 km
+railRoute([-99.5, 27.5], [-99.13, 19.43], { network: NORTH_AMERICA_NETWORK });   // Laredo → Mexico City ≈ 1,186 km
+```
+
+Source is the Federal Railroad Administration's **North American Rail Network**
+(main sub-network `NET='M'` plus rail-ferry links), published by BTS in the
+National Transportation Atlas Database — a US Government work in the public
+domain, updated July 2026. It ships its own topology, so no snapping heuristics
+were needed. Shortest-path distances run **4–9 % below** published timetable
+miles (LA–Chicago −4 %, New York–Chicago −6 %, Seattle–LA −9 %) because the
+graph takes the geometrically shortest owner-agnostic path; trackage rights and
+ownership are in the source but not (yet) modelled. All edges are standard
+gauge; the source has no electrification field, so `electrifiedOnly` is a no-op
+on this network. No station codes yet — pass coordinates.
+
 ### Gauge, electrification, ferries
 
 ```ts
@@ -155,6 +180,17 @@ railRoute([0, 0], 'Warsaw Central', { network: EUROPE_NETWORK, maxSnapDistanceKm
 - Unknown station id → `Error('Unknown station: …')`
 - Point farther than `maxSnapDistanceKm` from the network → `SnapFailedError` (`.endpoint`, `.distanceKm`)
 - No path between the snapped points → `NoRouteError`
+
+## Loading networks from a CDN instead of bundling
+
+Every bundled network is also served from this repo (tag `networks-v1`) via
+jsDelivr, for browsers and edge runtimes that would rather fetch on demand:
+
+```ts
+import { railRoute, loadNetwork, NETWORK_URLS } from 'railroute-ts';
+const network = await loadNetwork(NETWORK_URLS.northAmerica);   // or .europe / .india / .corridor
+railRoute([-118.24, 34.05], [-87.63, 41.88], { network });
+```
 
 ## Multimodal: sea + rail with searoute-ts
 
@@ -186,12 +222,13 @@ claude mcp add railroute -- npx -y @railroute-ts/mcp
 
 ## Roadmap
 
-Shipped in v0.1–0.2: Europe + India networks, UIC/IR station-code inputs, gauge-break and
+Shipped in v0.1–0.2: Europe, India and North America networks, UIC/IR station-code inputs, gauge-break and
 electrification awareness, train-ferry links, K-shortest alternatives, multi-leg
 itineraries, snap-distance guard.
 
 - **MCP server** (`@railroute-ts/mcp`) so AI agents can call `rail_route` — see [`examples/mcp-server`](https://github.com/mayurrawte/railroutes/tree/main/examples/mcp-server)
-- North America (FRA/BTS NARN, public domain) and China networks via `loadNetwork(url)` from CDN — [design](https://github.com/mayurrawte/railroutes/blob/main/docs/superpowers/specs/2026-09-02-global-networks-design.md), issues [#11](https://github.com/mayurrawte/railroutes/issues/11) / [#12](https://github.com/mayurrawte/railroutes/issues/12)
+- China network — [design](https://github.com/mayurrawte/railroutes/blob/main/docs/superpowers/specs/2026-09-02-global-networks-design.md), issue [#12](https://github.com/mayurrawte/railroutes/issues/12)
+- Station codes for North America (Amtrak/VIA) and China; trackage-rights-aware routing on NARN
 - Station fallback where OSM lacks `uic_ref` (Portugal, Sweden)
 - Shareable URL state in the demo
 

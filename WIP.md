@@ -3,6 +3,13 @@
 _Updated: 2026-09-02_
 
 ## Current state
+- **2026-09-02 — #11 North America DONE (in 0.2.0, unpublished)**: `network/fetch-narn.py` pages the FRA/BTS
+  NARN ArcGIS FeatureServer (NET IN ('M','F'), 95,951 arcs, ~3 min) into the raw-ways shape with FRA node ids
+  as junctions; `build-network.py` honours `ferry=yes` way tags. Result 12,943 edges / 4.24 MB / 0.95 MB gz →
+  under the 1.5 MB rule so it is BUNDLED as `networks/north-america` (package now 3.4 MB compressed, 21 MB
+  unpacked). Accuracy −4…−9 % vs timetable miles (shortest path ignores trackage rights). `NETWORK_URLS`
+  exported for jsDelivr loading — **create the git tag `networks-v1` on the release commit** or those URLs 404.
+  No NA station codes yet. MCP server: network "north-america". Next: #12 China, #13 tag + CDN docs.
 - **2026-09-02 — 0.2.0 ready (uncommitted at time of writing): India network + pipeline v3.**
   `network/fetch-region.py regions/<name>.json` replaces fetch-europe.sh; `build-network.py` gained
   stitching (dead-end node merge ≤50 m across components + ≤2 km dead-end bridging + single-component

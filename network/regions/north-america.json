@@ -1,0 +1,10 @@
+{
+  "name": "north-america",
+  "source": "narn",
+  "license": "Public domain (US Government work, 17 U.S.C. § 101) — FRA/BTS North American Rail Network, NTAD",
+  "service": "https://services.arcgis.com/xOi1kZaI0eWDREZv/arcgis/rest/services/NTAD_North_American_Rail_Network_Lines/FeatureServer/0",
+  "where": "NET IN ('M','F')",
+  "gauge": "1435",
+  "ferries": false,
+  "stations": null
+}

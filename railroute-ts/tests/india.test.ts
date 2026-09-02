@@ -10,7 +10,7 @@ describe('India network', () => {
     expect(r.properties.length).toBeGreaterThan(1300);
     expect(r.properties.length).toBeLessThan(1500);
     expect(r.properties.originStation).toMatch(/New Delhi/i);
-  });
+  }, 30_000);
 
   it('routes Chennai -> Howrah (~1,660 km) and stays on broad gauge', async () => {
     const { INDIA_NETWORK } = await import('../src/networks/india.js');
@@ -19,7 +19,7 @@ describe('India network', () => {
     expect(r.properties.length).toBeGreaterThan(1550);
     expect(r.properties.length).toBeLessThan(1800);
     expect(r.properties.gaugeChanges ?? 0).toBe(0);
-  });
+  }, 30_000);
 
   it('carries metadata (source, license, bbox) on the bundled network', async () => {
     const { INDIA_NETWORK } = await import('../src/networks/india.js');

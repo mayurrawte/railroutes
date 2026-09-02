@@ -11,6 +11,8 @@ import json, sys, time, urllib.request, urllib.parse, pathlib
 OVERPASS = "https://overpass-api.de/api/interpreter"
 cfg = json.load(open(sys.argv[1]))
 name = cfg["name"]
+if cfg.get("source") == "narn":
+    import subprocess; sys.exit(subprocess.call([sys.executable, "fetch-narn.py", sys.argv[1]]))
 tiles_dir = pathlib.Path(f"{name}-tiles"); tiles_dir.mkdir(exist_ok=True)
 
 def query(q, out, tries=3):

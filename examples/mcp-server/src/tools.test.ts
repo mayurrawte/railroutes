@@ -102,3 +102,13 @@ describe('india network', () => {
     expect(sc.matches.some((m) => m.code === 'HWH')).toBe(true);
   });
 });
+
+describe('north-america network', () => {
+  it('rail_route accepts network:"north-america" (LA -> Chicago ≈ 3,400 km)', () => {
+    const res = runRailRoute(routeArgs({ origin: [-118.24, 34.05], destination: [-87.63, 41.88], network: 'north-america', includeGeometry: false }));
+    expect(res.isError).toBeFalsy();
+    const sc = res.structuredContent as { distanceKm: number };
+    expect(sc.distanceKm).toBeGreaterThan(3200);
+    expect(sc.distanceKm).toBeLessThan(3700);
+  }, 30_000);
+});
