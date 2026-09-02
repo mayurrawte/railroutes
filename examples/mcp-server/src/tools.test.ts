@@ -85,3 +85,20 @@ describe('rail_station_search', () => {
     expect(sc.matches.length).toBe(3);
   });
 });
+
+describe('india network', () => {
+  it('rail_route accepts network:"india" and Indian Railways codes', () => {
+    const res = runRailRoute(routeArgs({ origin: 'NDLS', destination: 'CSMT', network: 'india', includeGeometry: false }));
+    expect(res.isError).toBeFalsy();
+    const sc = res.structuredContent as { distanceKm: number; originStation: string };
+    expect(sc.distanceKm).toBeGreaterThan(1300);
+    expect(sc.distanceKm).toBeLessThan(1500);
+    expect(sc.originStation).toMatch(/New Delhi/);
+  });
+
+  it('rail_station_search finds Indian stations and reports the IR code', () => {
+    const res = runRailStationSearch(searchArgs({ query: 'howrah' }));
+    const sc = res.structuredContent as { matches: { code: string; name: string }[] };
+    expect(sc.matches.some((m) => m.code === 'HWH')).toBe(true);
+  });
+});

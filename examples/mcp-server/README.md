@@ -5,7 +5,7 @@
 
 A [Model Context Protocol](https://modelcontextprotocol.io) server that exposes
 [`railroute-ts`](https://github.com/mayurrawte/railroutes) to AI agents, so they
-can compute real railway routes across Europe ("how far is Rotterdam to Genoa by
+can compute real railway routes across Europe and India ("how far is Rotterdam to Genoa by
 rail, and does it cross a gauge break?") instead of guessing.
 
 It is a thin wrapper over the `railroute-ts` public API — no new routing logic.
@@ -25,7 +25,7 @@ duration, gauge changes, train-ferry km, snap distances and the route GeoJSON.
 | Argument | Type | Notes |
 | --- | --- | --- |
 | `origin`, `destination` | station name / UIC code `string` or `[lon, lat]` | required |
-| `network` | `"europe"` \| `"corridor"` | default `europe`; `corridor` = Rhine-Alpine only, faster |
+| `network` | `"europe"` \| `"corridor"` \| `"india"` | default `europe`; `corridor` = Rhine-Alpine only, faster; `india` = Indian Railways mainline, accepts IR codes (NDLS, CSMT, MAS, HWH) |
 | `speedKmh` | number | fills an estimated duration in hours |
 | `electrifiedOnly` | boolean | only electrified track |
 | `ferries` | boolean | `false` forbids train ferries (Messina, Rostock–Trelleborg …) |
@@ -41,7 +41,7 @@ geometry off by default.
 
 ### `rail_station_search`
 
-Substring search over the 12,886 bundled European stations (OSM `uic_ref`).
+Substring search over the bundled stations — 12,886 European (OSM `uic_ref`) and 8,476 Indian (OSM `ref` = Indian Railways code) — or an exact code.
 Returns name, UIC code and coordinates — resolve "vienna main station" to
 `Wien Hauptbahnhof` before routing. Coverage follows OSM tagging: strong in
 DE/AT/CH/FR/PL/IT, weak in Portugal and Sweden (pass `[lon, lat]` there).

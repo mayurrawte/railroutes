@@ -18,10 +18,12 @@ npm install railroute-ts
 
 **🗺️ [Try the interactive demo](https://mayurrawte.is-a.dev/railroutes/)** — click two points in Europe and see the rail route, computed in your browser.
 
-**Status: v0.** Two bundled networks: **Europe-wide** (35–72N,
-10W–32E — 30,628 edges, 1.25 MB gzipped) and the lighter Rhine-Alpine corridor.
-Verified against real itineraries: Lisbon→Warsaw, Stockholm→Rome, London→Vienna
-via the Channel Tunnel.
+**Status: v0.2.** Three bundled networks: **Europe-wide** (35–72N, 10W–32E —
+40,693 edges, 1.46 MB gzipped), **India** (Indian Railways mainline — 6,858
+edges, 0.28 MB gzipped, routes by IR station codes) and the lighter Rhine-Alpine
+corridor. Verified against real itineraries: Lisbon→Warsaw, London→Vienna via
+the Channel Tunnel, New Delhi→Mumbai CSMT, Howrah→Chennai. North America and
+China are next ([roadmap](#roadmap)).
 
 ```ts
 import { railRoute } from 'railroute-ts';
@@ -104,6 +106,28 @@ const net = await loadNetwork('https://example.com/rail.json'); // GeoJSON Featu
 railRoute(a, b, { network: net });
 ```
 
+### India — Indian Railways station codes
+
+```ts
+import { railRoute } from 'railroute-ts';
+import { INDIA_NETWORK } from 'railroute-ts/networks/india';
+import 'railroute-ts/stations/india';   // 8,476 stations, IR codes from OSM `ref`
+
+railRoute('NDLS', 'CSMT', { network: INDIA_NETWORK, speedKmh: 55 });
+// New Delhi → Mumbai CSMT ≈ 1,434 km (IR timetable: 1,384 km), ~26 h at freight speed
+railRoute('HWH', 'MAS', { network: INDIA_NETWORK });   // Howrah → Chennai Central ≈ 1,747 km
+railRoute('SBC', [72.84, 18.94], { network: INDIA_NETWORK }); // codes and coordinates mix freely
+```
+
+Accuracy on trunk corridors is within ±6 % of Indian Railways timetable
+distances (Delhi–Mumbai +4 %, Delhi–Howrah −0 %, Ahmedabad–Mumbai Central 0 %,
+Delhi–Jammu −1 %, Secunderabad–Howrah +2 %). Where OSM lacks a `usage=main` tag
+on a link the route detours — Bengaluru–Chennai is currently +36 % for that
+reason; fixes are OSM edits, and the network is rebuilt from OSM on each release.
+Gauge is carried per edge (broad 1676 mm dominates; remaining metre-gauge shows
+up as `gaugeChanges`). Coverage box: 68–95E, 8–34N; Sri Lanka, Pakistan and
+Bangladesh mainlines are not connected to the Indian graph.
+
 ### Gauge, electrification, ferries
 
 ```ts
@@ -162,12 +186,12 @@ claude mcp add railroute -- npx -y @railroute-ts/mcp
 
 ## Roadmap
 
-Shipped in v0.1: Europe network, UIC/station-name inputs, gauge-break and
+Shipped in v0.1–0.2: Europe + India networks, UIC/IR station-code inputs, gauge-break and
 electrification awareness, train-ferry links, K-shortest alternatives, multi-leg
 itineraries, snap-distance guard.
 
 - **MCP server** (`@railroute-ts/mcp`) so AI agents can call `rail_route` — see [`examples/mcp-server`](https://github.com/mayurrawte/railroutes/tree/main/examples/mcp-server)
-- World network via `loadNetwork(url)` from CDN (North America, India, China)
+- North America (FRA/BTS NARN, public domain) and China networks via `loadNetwork(url)` from CDN — [design](https://github.com/mayurrawte/railroutes/blob/main/docs/superpowers/specs/2026-09-02-global-networks-design.md), issues [#11](https://github.com/mayurrawte/railroutes/issues/11) / [#12](https://github.com/mayurrawte/railroutes/issues/12)
 - Station fallback where OSM lacks `uic_ref` (Portugal, Sweden)
 - Shareable URL state in the demo
 

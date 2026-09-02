@@ -1,6 +1,6 @@
 {
   "name": "railroute-ts",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "scripts": {
     "test": "vitest run",
     "build": "tsc"
@@ -38,7 +38,9 @@
     "eta",
     "europe",
     "typescript",
-    "searoute"
+    "searoute",
+    "india",
+    "indian-railways"
   ],
   "author": "Mayur Rawte",
   "license": "MIT",
@@ -70,6 +72,14 @@
     "./stations/europe": {
       "types": "./dist/stations/europe.d.ts",
       "import": "./dist/stations/europe.js"
+    },
+    "./networks/india": {
+      "types": "./dist/networks/india.d.ts",
+      "import": "./dist/networks/india.js"
+    },
+    "./stations/india": {
+      "types": "./dist/stations/india.d.ts",
+      "import": "./dist/stations/india.js"
     }
   },
   "files": [

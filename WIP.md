@@ -3,6 +3,14 @@
 _Updated: 2026-09-02_
 
 ## Current state
+- **2026-09-02 — 0.2.0 ready (uncommitted at time of writing): India network + pipeline v3.**
+  `network/fetch-region.py regions/<name>.json` replaces fetch-europe.sh; `build-network.py` gained
+  stitching (dead-end node merge ≤50 m across components + ≤2 km dead-end bridging + single-component
+  assertion) — OSM mainline is broken into 500+ pieces that touch without sharing nodes; the old
+  giant-component filter silently dropped Mumbai, Kerala, Bengaluru and ~2,500 Europe edges.
+  Europe grew 38,212 → 40,693 edges (1.46 MB gz, right under the 1.5 MB bundle rule). India: 6,858
+  edges / 0.28 MB gz, 8,476 stations with IR codes. Trunk accuracy ±6 % vs IR timetable; SBC–MAS +36 %
+  (OSM tag gap). MCP server: network "india" + code search. Issues #9 #10 done. Publish 0.2.0 (not 0.1.1).
 - **2026-09-02 growth batch (uncommitted)**: `examples/mcp-server` = `@railroute-ts/mcp` 0.1.0
   (rail_route / rail_route_alternatives / rail_station_search, 8 tests, builds, stdio
   smoke-tested). Publish order: (1) `railroute-ts@0.1.1`, (2) `cd examples/mcp-server && npm install && npm publish --access public`
@@ -45,8 +53,10 @@ _Updated: 2026-09-02_
 
 ## Traps (read before touching the pipeline)
 - Raw data is local-only + gitignored (575 MB `network/europe-tiles/`, `europe-raw.json`).
-  Regenerate: `network/fetch-europe.sh` (9 Overpass tiles, ~45 min, polite sleeps)
-  → merge/dedupe by way id → `build-network.py RAW OUT rail-ferries.json`.
+  Regenerate: `network/fetch-region.py regions/europe.json` (9 Overpass tiles, ~45 min, polite sleeps;
+  merges + dedupes by way id) → `build-network.py europe-raw.json OUT europe-ferries.json regions/europe.json`.
+  (Legacy files `europe-raw.json` / `rail-ferries.json` on the primary Mac predate the region configs; the
+  rebuild from them was verified bit-identical: 38,212 edges / 259,890 km.) See `network/README.md`.
 - Ferry stitching happens BEFORE the giant-component filter (Sicily joins via the
   Messina ferry) and must attach to junction/endpoint nodes only — intermediate
   nodes aren't in the edge graph (this bug bit once already).

@@ -6,14 +6,16 @@
   edges whose properties match
 - stitches train-ferry ways (route=ferry + railway=ferry) into the network
   by connecting their endpoints to the nearest rail node
-Usage: build-network.py RAW.json OUT.json [FERRIES.json]
+Usage: build-network.py RAW.json OUT.json [FERRIES.json|-] [regions/NAME.json]
+The optional region config adds a `metadata` block (source, license, bbox…).
 """
-import json, math, sys
+import json, math, sys, datetime
 from collections import defaultdict
 sys.setrecursionlimit(100000)
 
 SRC, OUT = sys.argv[1], sys.argv[2]
-FERRIES = sys.argv[3] if len(sys.argv) > 3 else None
+FERRIES = sys.argv[3] if len(sys.argv) > 3 and sys.argv[3] != '-' else None
+REGION = json.load(open(sys.argv[4])) if len(sys.argv) > 4 else None
 
 def dist_km(a, b):
     dx = (b[0]-a[0]) * math.cos(math.radians((a[1]+b[1])/2)) * 111.32
@@ -99,21 +101,120 @@ if FERRIES:
         stitched += 1
     print(f"ferries stitched: {stitched}")
 
-# giant component
-adj = defaultdict(set)
+# ---- stitch tagging gaps ------------------------------------------------------
+# OSM mainline is frequently broken into pieces that touch (or nearly touch)
+# without sharing a node id: a way end 5 m from another way's end, or a short
+# untagged segment. Left alone, the giant-component filter silently drops whole
+# regions (India: Mumbai, Kerala, Bangalore; 520 components). Two passes:
+#   1. merge edge-graph nodes closer than MERGE_KM (same physical point)
+#   2. bridge remaining components to the main one with a connector edge when a
+#      dead-end node lies within BRIDGE_KM of the main component (a missing link)
+MERGE_KM, BRIDGE_KM, MIN_COMP_EDGES = 0.05, 2.0, 5
+
+node_coord = {}
+for a, b, coords, *_ in edges:
+    node_coord[a] = coords[0]; node_coord[b] = coords[-1]
+
+def rewire(edge, a2, b2):
+    """Re-point an edge at new endpoint node ids AND snap its geometry ends to them,
+    otherwise the emitted GeoJSON (which is keyed by coordinates downstream) stays split."""
+    a, b, coords, *rest = edge
+    coords = [node_coord[a2]] + coords[1:-1] + [node_coord[b2]] if len(coords) > 1 else [node_coord[a2], node_coord[b2]]
+    return (a2, b2, coords, *rest)
+
+def components(edge_list):
+    adj = defaultdict(set)
+    for a, b, *_ in edge_list:
+        adj[a].add(b); adj[b].add(a)
+    seen = set(); comps = []
+    for start in adj:
+        if start in seen: continue
+        comp, stack = set(), [start]
+        while stack:
+            u = stack.pop()
+            if u in seen: continue
+            seen.add(u); comp.add(u)
+            stack.extend(adj[u] - seen)
+        comps.append(comp)
+    return comps
+
+# pass 1: coordinate merge — ONLY across different components and only when one
+# side is a dead end. Merging every close pair would fuse parallel tracks of a
+# double-track line (4–10 m apart) into junctions and defeat chain contraction.
+comps = components(edges)
+comp_of = {}
+for i, c in enumerate(comps):
+    for n in c: comp_of[n] = i
+cparent = list(range(len(comps)))
+def cfind(x):
+    while cparent[x] != x:
+        cparent[x] = cparent[cparent[x]]; x = cparent[x]
+    return x
+deg = defaultdict(int)
 for a, b, *_ in edges:
-    adj[a].add(b); adj[b].add(a)
-seen = set(); comps = []
-for start in adj:
-    if start in seen: continue
-    comp, stack = set(), [start]
-    while stack:
-        u = stack.pop()
-        if u in seen: continue
-        seen.add(u); comp.add(u)
-        stack.extend(adj[u] - seen)
-    comps.append(comp)
-main = max(comps, key=len)
+    deg[a] += 1; deg[b] += 1
+cell = MERGE_KM / 111.32
+grid = defaultdict(list)
+for n, c in node_coord.items():
+    grid[(int(c[0] / cell), int(c[1] / cell))].append(n)
+parent = {n: n for n in node_coord}
+def find(x):
+    while parent[x] != x:
+        parent[x] = parent[parent[x]]; x = parent[x]
+    return x
+merged_nodes = 0
+for (gx, gy), ns in grid.items():
+    for n in ns:
+        if deg[n] != 1: continue
+        for dx in (-1, 0, 1):
+            for dy in (-1, 0, 1):
+                for m in grid.get((gx + dx, gy + dy), ()):
+                    if m == n or cfind(comp_of[n]) == cfind(comp_of[m]): continue
+                    if dist_km(node_coord[n], node_coord[m]) <= MERGE_KM:
+                        parent[find(n)] = find(m)
+                        cparent[cfind(comp_of[n])] = cfind(comp_of[m])
+                        merged_nodes += 1
+edges = [rewire(e, find(e[0]), find(e[1])) for e in edges if find(e[0]) != find(e[1])]
+print(f"stitch pass 1: merged {merged_nodes} touching dead-ends across {len(comps)} components")
+
+# pass 2: bridge components to the main one
+bridged = 0
+while True:
+    comps = components(edges)
+    comps.sort(key=len, reverse=True)
+    main = comps[0]
+    deg = defaultdict(int)
+    for a, b, *_ in edges:
+        deg[a] += 1; deg[b] += 1
+    bcell = BRIDGE_KM / 111.32
+    mgrid = defaultdict(list)
+    for n in main:
+        c = node_coord[n]; mgrid[(int(c[0] / bcell), int(c[1] / bcell))].append(n)
+    new_edges, remap = [], {}
+    for comp in comps[1:]:
+        if len(comp) < MIN_COMP_EDGES: continue
+        best = (BRIDGE_KM, None, None)
+        for n in comp:
+            if deg[n] != 1: continue
+            c = node_coord[n]; gx, gy = int(c[0] / bcell), int(c[1] / bcell)
+            for dx in (-1, 0, 1):
+                for dy in (-1, 0, 1):
+                    for m in mgrid.get((gx + dx, gy + dy), ()):
+                        dd = dist_km(c, node_coord[m])
+                        if dd < best[0]: best = (dd, n, m)
+        if best[1] is not None:
+            dd, n, m = best
+            if dd <= MERGE_KM:
+                remap[n] = m            # (near-)coincident: fuse the nodes, a 0 km edge would be dropped at emit
+            else:
+                new_edges.append((n, m, [node_coord[n], node_coord[m]], None, None))
+    if not new_edges and not remap: break
+    if remap:
+        edges = [rewire(e, remap.get(e[0], e[0]), remap.get(e[1], e[1])) for e in edges
+                 if remap.get(e[0], e[0]) != remap.get(e[1], e[1])]
+    edges.extend(new_edges); bridged += len(new_edges) + len(remap)
+print(f"stitch pass 2: bridged {bridged} components (gap ≤ {BRIDGE_KM} km); "
+      f"{len(comps)} components remain, main has {len(main)} nodes")
 kept = [e for e in edges if e[0] in main]
 
 # contract degree-2 chains, but only across edges with IDENTICAL properties
@@ -168,7 +269,31 @@ for e in kept:
     ferry = len(e) > 5 and e[5]
     emit(coords, gauge, elec, ferry=ferry)
 
+# sanity: the emitted network must be a single connected component
+oadj = defaultdict(set)
+for f in feats:
+    c = f["geometry"]["coordinates"]; a, b = tuple(c[0]), tuple(c[-1]); oadj[a].add(b); oadj[b].add(a)
+oseen, ocomps = set(), 0
+for s0 in oadj:
+    if s0 in oseen: continue
+    ocomps += 1; st = [s0]
+    while st:
+        u = st.pop()
+        if u in oseen: continue
+        oseen.add(u); st.extend(oadj[u] - oseen)
+if ocomps != 1:
+    sys.exit(f"ERROR: output has {ocomps} connected components (expected 1) — check stitching")
+
 fc = {"type":"FeatureCollection","features":feats}
+if REGION:
+    lats = [c[1] for f in feats for c in f["geometry"]["coordinates"]]
+    lons = [c[0] for f in feats for c in f["geometry"]["coordinates"]]
+    fc["metadata"] = {
+        "name": REGION["name"], "source": REGION["source"], "license": REGION["license"],
+        "builtAt": datetime.date.today().isoformat(),
+        "bbox": [round(min(lons),2), round(min(lats),2), round(max(lons),2), round(max(lats),2)],
+        "edges": len(feats), "km": round(sum(f["properties"]["km"] for f in feats)),
+    }
 out = json.dumps(fc, separators=(',',':'))
 open(OUT,'w').write(out)
 tagged = sum(1 for f in feats if 'gauge' in f['properties'])

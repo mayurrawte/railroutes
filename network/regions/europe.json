@@ -1,0 +1,13 @@
+{
+  "name": "europe",
+  "source": "overpass",
+  "license": "ODbL-1.0 (© OpenStreetMap contributors)",
+  "tiles": [
+    [35, -10, 45, 5], [45, -10, 55, 5], [55, -10, 72, 5],
+    [35, 5, 45, 18],  [45, 5, 55, 18],  [55, 5, 72, 18],
+    [35, 18, 45, 32], [45, 18, 55, 32], [55, 18, 72, 32]
+  ],
+  "way_filter": "[\"railway\"=\"rail\"][\"usage\"=\"main\"]",
+  "ferries": true,
+  "stations": { "code_tag": "uic_ref" }
+}

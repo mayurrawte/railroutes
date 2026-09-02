@@ -1,0 +1,11 @@
+{
+  "name": "india",
+  "source": "overpass",
+  "license": "ODbL-1.0 (© OpenStreetMap contributors)",
+  "tiles": [
+    [6.5, 68, 21, 82], [21, 68, 35.5, 82], [6.5, 82, 35.5, 97.5]
+  ],
+  "way_filter": "[\"railway\"=\"rail\"][\"usage\"=\"main\"]",
+  "ferries": false,
+  "stations": { "code_tag": "ref", "extra_filter": "[\"railway\"=\"station\"][\"ref\"~\"^[A-Z]{2,5}$\"]" }
+}

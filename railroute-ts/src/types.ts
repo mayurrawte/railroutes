@@ -1,7 +1,19 @@
 export type Position = [number, number]; // [lon, lat]
 
+export interface RailNetworkMetadata {
+  name: string;
+  source: string;
+  license: string;
+  builtAt: string;
+  /** [minLon, minLat, maxLon, maxLat] */
+  bbox: [number, number, number, number];
+  edges: number;
+  km: number;
+}
+
 export interface RailNetwork {
   type: 'FeatureCollection';
+  metadata?: RailNetworkMetadata;
   features: Array<{
     type: 'Feature';
     properties: Record<string, unknown> & { gauge?: string; electrified?: boolean; ferry?: boolean };

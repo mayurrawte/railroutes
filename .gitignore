@@ -6,3 +6,10 @@ network/europe-tiles/
 network/europe-stations-raw.json
 network/corridor-stations.json
 network/*.log
+
+# pipeline raw downloads (regenerate with network/fetch-region.py)
+network/*-tiles/
+network/*-raw.json
+network/*-ferries.json
+!network/rail-ferries.json
+network/fetch-*.log

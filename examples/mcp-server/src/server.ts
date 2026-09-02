@@ -22,7 +22,7 @@ export function createServer(): McpServer {
     {
       title: 'Shortest rail route',
       description:
-        'Compute the shortest railway route between two points in Europe (station names like "Wien Hauptbahnhof", UIC codes, or [lon, lat]). Returns distance in km, optional duration, gauge changes, train-ferry km and the route GeoJSON. Options: electrified-only, no ferries, gauge-break penalty. Pairs with the searoute MCP server for multimodal sea + rail freight distance.',
+        'Compute the shortest railway route between two points in Europe or India (station names like "Wien Hauptbahnhof", UIC codes, Indian Railways codes like NDLS/CSMT, or [lon, lat]; pick network: "europe" | "corridor" | "india"). Returns distance in km, optional duration, gauge changes, train-ferry km and the route GeoJSON. Options: electrified-only, no ferries, gauge-break penalty. Pairs with the searoute MCP server for multimodal sea + rail freight distance.',
       inputSchema: railRouteInputSchema,
     },
     async (args) => runRailRoute(args),
@@ -44,7 +44,7 @@ export function createServer(): McpServer {
     {
       title: 'Search rail stations',
       description:
-        'Find European railway stations by name (substring, case-insensitive) and get their UIC code and coordinates. Use it to resolve a city to an exact station name before calling rail_route.',
+        'Find European and Indian railway stations by name or code (substring, case-insensitive) and get their UIC code and coordinates. Use it to resolve a city to an exact station name before calling rail_route.',
       inputSchema: railStationSearchInputSchema,
     },
     async (args) => runRailStationSearch(args),

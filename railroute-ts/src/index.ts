@@ -1,6 +1,6 @@
 import type { Position, RailNetwork, RailRouteOptions, RailRouteFeature } from './types.js';
 
-export type { RailNetwork, RailRouteOptions, RailRouteFeature, Position } from './types.js';
+export type { RailNetwork, RailNetworkMetadata, RailRouteOptions, RailRouteFeature, Position } from './types.js';
 
 export class SnapFailedError extends Error {
   constructor(

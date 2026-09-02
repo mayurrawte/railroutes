@@ -1,9 +1,11 @@
 // Importing the station subpaths registers Europe + corridor stations into the
 // core, so agents can pass station names ("Wien Hauptbahnhof") or UIC codes.
 import { EUROPE_STATIONS } from 'railroute-ts/stations/europe';
+import { INDIA_STATIONS } from 'railroute-ts/stations/india';
 import 'railroute-ts/stations/corridor';
 import { EUROPE_NETWORK } from 'railroute-ts/networks/europe';
 import { CORRIDOR_NETWORK } from 'railroute-ts/networks/corridor';
+import { INDIA_NETWORK } from 'railroute-ts/networks/india';
 import {
   NoRouteError,
   SnapFailedError,
@@ -35,16 +37,20 @@ const pointSchema = z
   .describe('A station name / UIC code string, or a [longitude, latitude] coordinate pair.');
 
 const networkSchema = z
-  .enum(['europe', 'corridor'])
+  .enum(['europe', 'corridor', 'india'])
   .default('europe')
   .describe(
-    '"europe": the whole continent (35–72N, 10W–32E). "corridor": the lighter Rhine-Alpine corridor (Rotterdam–Genoa), faster.',
+    '"europe": the whole continent (35–72N, 10W–32E). "corridor": the lighter Rhine-Alpine corridor (Rotterdam–Genoa), faster. "india": Indian Railways mainline (accepts IR station codes such as NDLS, CSMT, MAS, HWH).',
   );
 
-const NETWORKS: Record<'europe' | 'corridor', RailNetwork> = {
+type NetworkName = 'europe' | 'corridor' | 'india';
+const NETWORKS: Record<NetworkName, RailNetwork> = {
   europe: EUROPE_NETWORK,
   corridor: CORRIDOR_NETWORK,
+  india: INDIA_NETWORK,
 };
+
+const ALL_STATIONS = [...EUROPE_STATIONS, ...INDIA_STATIONS];
 
 const commonOptions = {
   network: networkSchema,
@@ -68,7 +74,7 @@ const commonOptions = {
 };
 
 type CommonArgs = {
-  network: 'europe' | 'corridor';
+  network: NetworkName;
   speedKmh?: number;
   electrifiedOnly?: boolean;
   ferries?: boolean;
@@ -190,17 +196,19 @@ export function runRailRouteAlternatives(args: RailRouteAlternativesArgs): ToolR
 // ── rail_station_search ──────────────────────────────────────────────────────
 
 export const railStationSearchInputSchema = {
-  query: z.string().min(2).describe('Free text; every word must appear in the station name (case-insensitive).'),
+  query: z.string().min(2).describe('Free text; every word must appear in the station name (case-insensitive), or an exact station code (UIC / Indian Railways).'),
   limit: z.number().int().gte(1).lte(50).default(10).describe('Maximum matches to return.'),
 };
 
 const RailStationSearchArgs = z.object(railStationSearchInputSchema);
 export type RailStationSearchArgs = z.infer<typeof RailStationSearchArgs>;
 
-/** Substring search over the bundled Europe stations. Pure — safe to unit-test directly. */
+/** Substring search over the bundled Europe + India stations (name or exact code). Pure — safe to unit-test directly. */
 export function runRailStationSearch(args: RailStationSearchArgs): ToolResult {
   const words = args.query.toLowerCase().split(/\s+/).filter(Boolean);
-  const matches = EUROPE_STATIONS.filter((s) => {
+  const upper = args.query.trim().toUpperCase();
+  const matches = ALL_STATIONS.filter((s) => {
+    if (s.code === upper) return true;
     const name = s.name.toLowerCase();
     return words.every((w) => name.includes(w));
   })
@@ -211,6 +219,6 @@ export function runRailStationSearch(args: RailStationSearchArgs): ToolResult {
 
   const text = matches.length
     ? `${matches.length} station(s):\n` + matches.map((m) => `- ${m.name} (UIC ${m.code}) @ [${m.coord[0]}, ${m.coord[1]}]`).join('\n')
-    : `No station matches "${args.query}". Coverage follows OSM uic_ref tagging (weak in Portugal and Sweden); pass [lon, lat] instead.`;
+    : `No station matches "${args.query}". Coverage follows OSM tagging (uic_ref in Europe — weak in Portugal and Sweden; ref = IR code in India); pass [lon, lat] instead.`;
   return { content: [{ type: 'text', text }], structuredContent: { count: matches.length, matches } };
 }
