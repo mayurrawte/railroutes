@@ -101,7 +101,7 @@ regions existed: bundling everything made `npm install railroute-ts` 4.2 MB
 compressed / 25 MB unpacked for users who need one region. Shipped shape:
 
 - `railroute-ts` — core algorithm + types + `loadNetwork` + the small Rhine-Alpine
-  corridor sample (~30 KB).
+  corridor sample (~0.4 MB compressed, 2.6 MB unpacked — the sample is most of it).
 - `@railroute-ts/europe`, `@railroute-ts/india`, `@railroute-ts/north-america`,
   `@railroute-ts/china` — one data package per region (`packages/<region>/`),
   exporting `<REGION>_NETWORK` and, where codes exist, `<REGION>_STATIONS`.

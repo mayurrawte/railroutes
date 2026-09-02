@@ -3,7 +3,7 @@
 _Updated: 2026-09-02_
 
 ## Current state
-- **2026-09-02 — monorepo split (uncommitted while writing)**: npm workspaces at repo root. `railroute-ts` core (~30 KB,
+- **2026-09-02 — monorepo split (uncommitted while writing)**: npm workspaces at repo root. `railroute-ts` core (0.4 MB compressed,
   corridor sample only) + `packages/{europe,india,north-america,china}` = `@railroute-ts/<region>` (version 2026.9.0,
   exports `<REGION>_NETWORK` [+ `_STATIONS`], `sideEffects:false`, peerDep railroute-ts). Stations NO LONGER self-register:
   `registerStations(EUROPE_STATIONS)`. Demo + MCP migrated. CI/publish/deploy workflows are root-workspace based;

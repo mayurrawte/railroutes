@@ -23,8 +23,8 @@ npm install railroute-ts @railroute-ts/europe    # core + the region(s) you need
 | [`@railroute-ts/north-america`](https://www.npmjs.com/package/@railroute-ts/north-america) | US + Canada + Mexico (FRA/BTS NARN, public domain) | — | 0.95 MB |
 | [`@railroute-ts/china`](https://www.npmjs.com/package/@railroute-ts/china) | Mainland China incl. HSR (OSM) | — | 0.83 MB |
 
-The core package is ~30 KB and ships only the small Rhine-Alpine corridor
-sample network; install the regions you route in. Data packages are versioned by
+The core package is ~0.4 MB compressed (almost all of it the Rhine-Alpine
+corridor sample network); install the regions you route in. Data packages are versioned by
 calendar (`2026.9.x` = data refresh) and can also be fetched at runtime from a
 CDN with `loadNetwork(NETWORK_URLS.europe)`.
 

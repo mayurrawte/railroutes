@@ -6,7 +6,7 @@
 > routes) — together they cover multimodal sea + rail freight distance.
 > MIT licensed; network data © OpenStreetMap contributors (ODbL).
 
-Status: v0.2, on npm. Core (`railroute-ts`, ~30 KB) + data packages: Europe-wide (35–72N, 10W–32E),
+Status: v0.2, on npm. Core (`railroute-ts`, ~0.4 MB) + data packages: Europe-wide (35–72N, 10W–32E),
 India (Indian Railways mainline, routes by IR station codes such as NDLS/CSMT via
 `@railroute-ts/india` (INDIA_NETWORK + INDIA_STATIONS)), North America
 (US/Canada/Mexico from the FRA/BTS North American Rail Network, public domain,
