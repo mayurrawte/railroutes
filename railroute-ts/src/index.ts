@@ -2,6 +2,19 @@ import type { Position, RailNetwork, RailRouteOptions, RailRouteFeature } from '
 
 export type { RailNetwork, RailRouteOptions, RailRouteFeature, Position } from './types.js';
 
+export class SnapFailedError extends Error {
+  constructor(
+    public readonly endpoint: 'origin' | 'destination',
+    public readonly distanceKm: number,
+    public readonly maxSnapDistanceKm: number,
+  ) {
+    super(
+      `${endpoint} is ${distanceKm.toFixed(1)} km from the nearest rail node (limit ${maxSnapDistanceKm} km)`,
+    );
+    this.name = 'SnapFailedError';
+  }
+}
+
 export class NoRouteError extends Error {
   constructor(message = 'No rail route found between origin and destination') {
     super(message);
@@ -59,13 +72,21 @@ function buildGraph(network: RailNetwork): Graph {
   return g;
 }
 
-function snap(g: Graph, p: Position): string {
+function snap(
+  g: Graph,
+  p: Position,
+  endpoint: 'origin' | 'destination',
+  maxSnapDistanceKm?: number,
+): { key: string; km: number } {
   let best = '', bestKm = Infinity;
   for (const [k, c] of g.coord) {
     const d = distKm(c, p);
     if (d < bestKm) { bestKm = d; best = k; }
   }
-  return best;
+  if (maxSnapDistanceKm !== undefined && bestKm > maxSnapDistanceKm) {
+    throw new SnapFailedError(endpoint, bestKm, maxSnapDistanceKm);
+  }
+  return { key: best, km: bestKm };
 }
 
 const edgeKey = (a: string, b: string) => (a < b ? `${a}|${b}` : `${b}|${a}`);
@@ -241,11 +262,13 @@ export function railRoute(
   const o = typeof origin === 'string' ? resolveStation(origin) : origin;
   const d = typeof destination === 'string' ? resolveStation(destination) : destination;
   const g = buildGraph(options.network);
-  const src = snap(g, o);
-  const dst = snap(g, d);
-  const result = dijkstra(g, src, dst, constraintsOf(options));
+  const oSnap = snap(g, o, 'origin', options.maxSnapDistanceKm);
+  const dSnap = snap(g, d, 'destination', options.maxSnapDistanceKm);
+  const result = dijkstra(g, oSnap.key, dSnap.key, constraintsOf(options));
   if (!result) throw new NoRouteError();
   const feature = decorate(g, result.km, result.path, options);
+  feature.properties.originSnapKm = oSnap.km;
+  feature.properties.destinationSnapKm = dSnap.km;
   if (originStation) feature.properties.originStation = originStation.name;
   if (destinationStation) feature.properties.destinationStation = destinationStation.name;
   return feature;
@@ -283,8 +306,8 @@ export function railRouteAlternatives(
   const o = typeof origin === 'string' ? resolveStation(origin) : origin;
   const d = typeof destination === 'string' ? resolveStation(destination) : destination;
   const g = buildGraph(options.network);
-  const src = snap(g, o);
-  const dst = snap(g, d);
+  const src = snap(g, o, 'origin', options.maxSnapDistanceKm).key;
+  const dst = snap(g, d, 'destination', options.maxSnapDistanceKm).key;
 
   const best = dijkstra(g, src, dst, base);
   if (!best) throw new NoRouteError();

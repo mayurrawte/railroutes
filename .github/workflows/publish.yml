@@ -1,0 +1,33 @@
+name: Publish railroute-ts to npm
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write # OIDC trusted publishing + provenance
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: railroute-ts
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: railroute-ts/package-lock.json
+          # NOTE: no registry-url — it writes an _authToken placeholder into
+          # .npmrc which overrides OIDC trusted publishing with a dummy token.
+      # Trusted publishing needs npm >= 11.5.1
+      - run: npm install -g npm@latest
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      # Auth via OIDC trusted publisher (configured on npmjs.com) — no token.
+      - run: npm publish --provenance --access public

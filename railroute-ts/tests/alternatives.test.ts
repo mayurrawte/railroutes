@@ -53,6 +53,11 @@ describe('railRouteMulti', () => {
   });
 });
 
+// Wall-clock budget. Shared GitHub runners are ~2.5x slower than a dev laptop
+// (Rotterdam->Genoa k=3: ~5s local vs ~12.5s on ubuntu-latest), so give CI headroom.
+// These tests guard against algorithmic blow-ups, not against slow hardware.
+const PERF_BUDGET_MS = process.env.CI ? 30_000 : 10_000;
+
 describe('railRouteAlternatives on the real corridor', () => {
   it('finds 2 distinct Basel->Milano routes in reasonable time', async () => {
     const { CORRIDOR_NETWORK } = await import('../src/networks/corridor.js');
@@ -63,16 +68,16 @@ describe('railRouteAlternatives on the real corridor', () => {
     expect(routes[1].properties.length).toBeGreaterThan(routes[0].properties.length);
     // a genuine alternative, not a near-duplicate detour
     expect(routes[1].properties.length).toBeLessThan(routes[0].properties.length * 2);
-    expect(elapsed).toBeLessThan(10_000);
+    expect(elapsed).toBeLessThan(PERF_BUDGET_MS);
   }, 60_000);
 });
 
 describe('railRouteAlternatives worst case', () => {
-  it('Rotterdam->Genoa k=3 stays under 10s (spur sampling)', async () => {
+  it('Rotterdam->Genoa k=3 stays within the perf budget (spur sampling)', async () => {
     const { CORRIDOR_NETWORK } = await import('../src/networks/corridor.js');
     const t0 = performance.now();
     const routes = railRouteAlternatives([4.47, 51.92], [8.92, 44.41], { network: CORRIDOR_NETWORK, k: 3 });
     expect(routes.length).toBeGreaterThanOrEqual(2);
-    expect(performance.now() - t0).toBeLessThan(10_000);
+    expect(performance.now() - t0).toBeLessThan(PERF_BUDGET_MS);
   }, 120_000);
 });

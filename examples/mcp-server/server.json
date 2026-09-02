@@ -1,0 +1,20 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.mayurrawte/railroute",
+  "description": "Real rail routes across Europe: distance, duration, gauge breaks, ferries, GeoJSON. Station names/UIC codes.",
+  "repository": {
+    "url": "https://github.com/mayurrawte/railroutes",
+    "source": "github"
+  },
+  "version": "0.1.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@railroute-ts/mcp",
+      "version": "0.1.0",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ]
+}

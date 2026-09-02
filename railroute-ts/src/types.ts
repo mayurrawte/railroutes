@@ -18,6 +18,11 @@ export interface RailRouteOptions {
   ferries?: boolean;
   /** Extra km added each time the route crosses a gauge break (e.g. 1435<->1668). */
   gaugeChangePenaltyKm?: number;
+  /**
+   * Reject origin/destination points farther than this many km from the nearest
+   * rail node (throws SnapFailedError). Default: unlimited.
+   */
+  maxSnapDistanceKm?: number;
 }
 
 export interface RailRouteProperties {
@@ -27,6 +32,10 @@ export interface RailRouteProperties {
   legs?: number[];
   gaugeChanges?: number;
   ferryKm?: number;
+  /** Distance (km) the origin was moved to reach the nearest rail node. */
+  originSnapKm?: number;
+  /** Distance (km) the destination was moved to reach the nearest rail node. */
+  destinationSnapKm?: number;
   [k: string]: unknown;
 }
 
