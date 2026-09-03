@@ -288,6 +288,93 @@ export const NETWORK_URLS = {
   corridor: 'https://cdn.jsdelivr.net/gh/mayurrawte/railroutes@networks-v1/railroute-ts/src/networks/corridor-v0.json',
 } as const;
 
+export interface MergeNetworksOptions {
+  /** Connect a dead end in one network to the nearest node of another network within this many km. Default 2. */
+  bridgeKm?: number;
+}
+
+/**
+ * Combine several networks (e.g. `@railroute-ts/china` + `@railroute-ts/cis` +
+ * `@railroute-ts/europe`) into one routable graph. Networks built from the same
+ * OSM source share node coordinates at their borders and join automatically;
+ * where they do not, dead ends within `bridgeKm` of another network get a short
+ * connector edge (`properties.connector: true`). Dead ends inside a single
+ * network are never bridged — that is the pipeline's responsibility.
+ */
+export function mergeNetworks(networks: RailNetwork[], options: MergeNetworksOptions = {}): RailNetwork {
+  const bridgeKm = options.bridgeKm ?? 2;
+  const key = (c: Position) => `${c[0]},${c[1]}`;
+  type Node = { c: Position; deg: number };
+  const perNet = networks.map((n) => {
+    const nodes = new Map<string, Node>();
+    for (const f of n.features) {
+      const cs = f.geometry.coordinates;
+      for (const c of [cs[0], cs[cs.length - 1]]) {
+        const k = key(c);
+        const node = nodes.get(k) ?? { c, deg: 0 };
+        node.deg++;
+        nodes.set(k, node);
+      }
+    }
+    return nodes;
+  });
+  const connectors: RailNetwork['features'] = [];
+  if (networks.length > 1 && bridgeKm > 0) {
+    const cell = bridgeKm / 111.32;
+    const grids = perNet.map((nodes) => {
+      const g = new Map<string, Position[]>();
+      for (const { c } of nodes.values()) {
+        const gk = `${Math.floor(c[0] / cell)},${Math.floor(c[1] / cell)}`;
+        (g.get(gk) ?? g.set(gk, []).get(gk)!).push(c);
+      }
+      return g;
+    });
+    const seen = new Set<string>();
+    for (let i = 0; i < networks.length; i++) {
+      for (const { c, deg } of perNet[i].values()) {
+        if (deg !== 1) continue;
+        let best: { d: number; c: Position } | null = null;
+        for (let j = 0; j < networks.length; j++) {
+          if (j === i) continue;
+          const gx = Math.floor(c[0] / cell), gy = Math.floor(c[1] / cell);
+          for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) {
+            for (const m of grids[j].get(`${gx + dx},${gy + dy}`) ?? []) {
+              const d = distKm(c, m);
+              if (d <= bridgeKm && (!best || d < best.d)) best = { d, c: m };
+            }
+          }
+        }
+        if (!best) continue;
+        const id = [key(c), key(best.c)].sort().join('|');
+        if (seen.has(id)) continue;
+        seen.add(id);
+        connectors.push({
+          type: 'Feature',
+          properties: { km: Math.round(best.d * 1000) / 1000, connector: true },
+          geometry: { type: 'LineString', coordinates: [c, best.c] },
+        });
+      }
+    }
+  }
+  const features = [...networks.flatMap((n) => n.features), ...connectors];
+  const metas = networks.map((n) => n.metadata).filter((m): m is NonNullable<typeof m> => !!m);
+  const metadata = metas.length
+    ? {
+        name: metas.map((m) => m.name).join('+'),
+        source: [...new Set(metas.map((m) => m.source))].join('+'),
+        license: [...new Set(metas.map((m) => m.license))].join('; '),
+        builtAt: metas.map((m) => m.builtAt).sort()[metas.length - 1],
+        bbox: [
+          Math.min(...metas.map((m) => m.bbox[0])), Math.min(...metas.map((m) => m.bbox[1])),
+          Math.max(...metas.map((m) => m.bbox[2])), Math.max(...metas.map((m) => m.bbox[3])),
+        ] as [number, number, number, number],
+        edges: features.length,
+        km: Math.round(metas.reduce((a, m) => a + m.km, 0) + connectors.reduce((a, f) => a + (f.properties.km as number), 0)),
+      }
+    : undefined;
+  return { type: 'FeatureCollection', metadata, features };
+}
+
 /** Fetch a rail network (GeoJSON FeatureCollection of LineStrings) at runtime. */
 export async function loadNetwork(url: string): Promise<RailNetwork> {
   const res = await fetch(url);

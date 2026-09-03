@@ -29,7 +29,7 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
-      - run: npm run build -w railroute-ts && npm run build -w @railroute-ts/europe -w @railroute-ts/india -w @railroute-ts/north-america -w @railroute-ts/china
+      - run: npm run build -w railroute-ts && npm run build -w @railroute-ts/europe -w @railroute-ts/india -w @railroute-ts/north-america -w @railroute-ts/china -w @railroute-ts/cis
       - run: npm run build -w examples/web-demo
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

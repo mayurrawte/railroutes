@@ -122,3 +122,14 @@ describe('china network', () => {
     expect(sc.distanceKm).toBeLessThan(1550);
   }, 30_000);
 });
+
+describe('eurasia (merged) network', () => {
+  it('rail_route with network:"eurasia" crosses China -> CIS -> Europe with 2 gauge changes', () => {
+    const res = runRailRoute(routeArgs({ origin: [106.55, 29.56], destination: [6.78, 51.43], network: 'eurasia', gaugeChangePenaltyKm: 300, includeGeometry: false }));
+    expect(res.isError).toBeFalsy();
+    const sc = res.structuredContent as { distanceKm: number; gaugeChanges: number };
+    expect(sc.distanceKm).toBeGreaterThan(9500);
+    expect(sc.distanceKm).toBeLessThan(12500);
+    expect(sc.gaugeChanges).toBe(2);
+  }, 120_000);
+});

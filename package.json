@@ -5,7 +5,8 @@
     "railroute-ts",
     "packages/*",
     "examples/mcp-server",
-    "examples/web-demo"
+    "examples/web-demo",
+    "examples/multimodal"
   ],
   "scripts": {
     "build": "npm run build -w railroute-ts && npm run build --workspaces --if-present",

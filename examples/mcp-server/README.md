@@ -25,7 +25,7 @@ duration, gauge changes, train-ferry km, snap distances and the route GeoJSON.
 | Argument | Type | Notes |
 | --- | --- | --- |
 | `origin`, `destination` | station name / UIC code `string` or `[lon, lat]` | required |
-| `network` | `"europe"` \| `"corridor"` \| `"india"` \| `"north-america"` \| `"china"` | default `europe`; `corridor` = Rhine-Alpine only, faster; `india` = Indian Railways mainline, accepts IR codes (NDLS, CSMT, MAS, HWH); `north-america` = US/Canada/Mexico (FRA NARN, coordinates only); `china` = mainland China incl. HSR (coordinates only) |
+| `network` | `"europe"` \| `"corridor"` \| `"india"` \| `"north-america"` \| `"china"` \| `"cis"` \| `"eurasia"` | default `europe`; `corridor` = Rhine-Alpine only, faster; `india` = Indian Railways mainline, accepts IR codes (NDLS, CSMT, MAS, HWH); `north-america` = US/Canada/Mexico (FRA NARN, coordinates only); `china` = mainland China + Mongolia incl. HSR; `cis` = Russia/Kazakhstan/Belarus/Ukraine/Caucasus/Central Asia; `eurasia` = china + cis + europe merged for land-bridge routes |
 | `speedKmh` | number | fills an estimated duration in hours |
 | `electrifiedOnly` | boolean | only electrified track |
 | `ferries` | boolean | `false` forbids train ferries (Messina, Rostock–Trelleborg …) |

@@ -1,0 +1,57 @@
+{
+  "name": "@railroute-ts/cis",
+  "version": "2026.9.0",
+  "description": "CIS / Eurasia land-bridge rail network data for railroute-ts — Former-USSR mainline rail (Russia, Kazakhstan, Belarus, Ukraine, Caucasus, Central Asia; 1520 mm) from OpenStreetMap — the land bridge between @railroute-ts/china and @railroute-ts/europe. Stations by English name.",
+  "type": "module",
+  "main": "./dist/src/index.js",
+  "types": "./dist/src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "import": "./dist/src/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "keywords": [
+    "railroute-ts",
+    "rail-route",
+    "railway",
+    "train-route",
+    "rail-network",
+    "russia",
+    "kazakhstan",
+    "trans-siberian",
+    "eurasia",
+    "land-bridge",
+    "1520",
+    "freight",
+    "logistics",
+    "geojson"
+  ],
+  "license": "MIT",
+  "peerDependencies": {
+    "railroute-ts": ">=0.2.0"
+  },
+  "devDependencies": {
+    "railroute-ts": "^0.2.0",
+    "@railroute-ts/china": "^2026.9.1",
+    "@railroute-ts/europe": "^2026.9.0",
+    "typescript": "^5.7.0",
+    "vitest": "^4.1.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mayurrawte/railroutes.git",
+    "directory": "packages/cis"
+  },
+  "homepage": "https://github.com/mayurrawte/railroutes/tree/main/packages/cis#readme"
+}

@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@railroute-ts/china": "^2026.9.0",
+    "@railroute-ts/cis": "^2026.9.0",
     "@railroute-ts/europe": "^2026.9.0",
     "@railroute-ts/india": "^2026.9.0",
     "@railroute-ts/north-america": "^2026.9.0",

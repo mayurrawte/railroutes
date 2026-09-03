@@ -3,6 +3,16 @@
 _Updated: 2026-09-02_
 
 ## Current state
+- **2026-09-03 in progress — CIS pack + mergeNetworks + multimodal examples (uncommitted until CIS data lands)**:
+  `mergeNetworks(networks, {bridgeKm})` in core (tests green) joins packs and bridges border dead-ends.
+  `packages/cis` = @railroute-ts/cis (RU tiled ×8 + KZ BY UA MD GE AM AZ UZ KG TJ TM via Overpass
+  `area["ISO3166-1"=..]` — region config key `areas`; plain `tiles` still supported). First bbox-based build
+  proved Chongqing→Duisburg with 2 gauge changes, but bbox packs drop neighbours' fragments (giant-component
+  filter), hence the country-scoped refetch. Demo + MCP get 'cis' and 'eurasia' (merged) networks.
+  `examples/multimodal/` (#14): 4 scripts, 3 verified (Shanghai→Rotterdam→Duisburg 19,965 km; Jebel Ali→Mundra→TKD
+  2,845 km; Shanghai→LA→Chicago 14,302 km). `build-network.py` gained a CANDIDATES stage (untagged railway=rail
+  chains admitted only if they join two mainline components) + `fetch-candidates.py` — for #17; India run pending.
+  Overpass main instance is saturated today (504s); kumi/lz4 mirrors help.
 - **2026-09-02 #16 stations for NA + China (packs → 2026.9.1, mcp → 0.1.1, UNPUBLISHED)**: NA = 638 Amtrak/VIA
   stations via OSM `network~Amtrak|VIA` (only 26 have ref:amtrak; `ref` is useless there), keyed by name.
   China = 9,326 heavy-rail stations via `name:en`, metro/light-rail filtered in build-stations.py. OSM names are

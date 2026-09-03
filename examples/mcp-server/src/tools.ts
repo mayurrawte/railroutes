@@ -4,10 +4,12 @@ import { EUROPE_NETWORK, EUROPE_STATIONS } from '@railroute-ts/europe';
 import { INDIA_NETWORK, INDIA_STATIONS } from '@railroute-ts/india';
 import { NORTH_AMERICA_NETWORK, NORTH_AMERICA_STATIONS } from '@railroute-ts/north-america';
 import { CHINA_NETWORK, CHINA_STATIONS } from '@railroute-ts/china';
+import { CIS_NETWORK, CIS_STATIONS } from '@railroute-ts/cis';
 import { CORRIDOR_NETWORK } from 'railroute-ts/networks/corridor';
 import { CORRIDOR_STATIONS } from 'railroute-ts/stations/corridor';
 import {
   NoRouteError,
+  mergeNetworks,
   registerStations,
   SnapFailedError,
   railRoute,
@@ -38,27 +40,34 @@ const pointSchema = z
   .describe('A station name / UIC code string, or a [longitude, latitude] coordinate pair.');
 
 const networkSchema = z
-  .enum(['europe', 'corridor', 'india', 'north-america', 'china'])
+  .enum(['europe', 'corridor', 'india', 'north-america', 'china', 'cis', 'eurasia'])
   .default('europe')
   .describe(
-    '"europe": the whole continent (35–72N, 10W–32E). "corridor": the lighter Rhine-Alpine corridor (Rotterdam–Genoa), faster. "india": Indian Railways mainline (accepts IR station codes such as NDLS, CSMT, MAS, HWH). "north-america": US + Canada + Mexico mainline from the FRA/BTS North American Rail Network (Amtrak/VIA station names such as "Chicago Union Station"). "china": mainland China mainline incl. HSR (English station names such as "Shanghai-Hongqiao").',
+    '"europe": the whole continent (35–72N, 10W–32E). "corridor": the lighter Rhine-Alpine corridor (Rotterdam–Genoa), faster. "india": Indian Railways mainline (accepts IR station codes such as NDLS, CSMT, MAS, HWH). "north-america": US + Canada + Mexico mainline from the FRA/BTS North American Rail Network (Amtrak/VIA station names such as "Chicago Union Station"). "china": mainland China + Mongolia incl. HSR (English station names such as "Shanghai-Hongqiao"). "cis": Russia, Kazakhstan, Belarus, Ukraine, Caucasus, Central Asia (1520 mm). "eurasia": china + cis + europe merged — use for China–Europe land-bridge routes (Chongqing → Duisburg), reports gauge changes at Dostyk and Brest.',
   );
 
-type NetworkName = 'europe' | 'corridor' | 'india' | 'north-america' | 'china';
-const NETWORKS: Record<NetworkName, RailNetwork> = {
+type NetworkName = 'europe' | 'corridor' | 'india' | 'north-america' | 'china' | 'cis' | 'eurasia';
+let eurasia: RailNetwork | undefined;
+const NETWORKS: Record<Exclude<NetworkName, 'eurasia'>, RailNetwork> = {
   europe: EUROPE_NETWORK,
   corridor: CORRIDOR_NETWORK,
   india: INDIA_NETWORK,
   'north-america': NORTH_AMERICA_NETWORK,
   china: CHINA_NETWORK,
+  cis: CIS_NETWORK,
 };
+function networkFor(name: NetworkName): RailNetwork {
+  if (name !== 'eurasia') return NETWORKS[name];
+  return (eurasia ??= mergeNetworks([CHINA_NETWORK, CIS_NETWORK, EUROPE_NETWORK]));
+}
 
 registerStations(EUROPE_STATIONS);
 registerStations(CORRIDOR_STATIONS);
 registerStations(INDIA_STATIONS);
 registerStations(NORTH_AMERICA_STATIONS);
 registerStations(CHINA_STATIONS);
-const ALL_STATIONS = [...EUROPE_STATIONS, ...INDIA_STATIONS, ...NORTH_AMERICA_STATIONS, ...CHINA_STATIONS];
+registerStations(CIS_STATIONS);
+const ALL_STATIONS = [...EUROPE_STATIONS, ...INDIA_STATIONS, ...NORTH_AMERICA_STATIONS, ...CHINA_STATIONS, ...CIS_STATIONS];
 
 const commonOptions = {
   network: networkSchema,
@@ -92,7 +101,7 @@ type CommonArgs = {
 
 function optionsOf(args: CommonArgs): RailRouteOptions {
   return {
-    network: NETWORKS[args.network],
+    network: networkFor(args.network),
     speedKmh: args.speedKmh,
     electrifiedOnly: args.electrifiedOnly,
     ferries: args.ferries,

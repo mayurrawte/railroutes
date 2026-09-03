@@ -1,13 +1,13 @@
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { NoRouteError, railRoute, railRouteAlternatives, registerStations } from 'railroute-ts';
+import { NoRouteError, mergeNetworks, railRoute, railRouteAlternatives, registerStations } from 'railroute-ts';
 import type { RailNetwork, Station } from 'railroute-ts';
 import { EUROPE_NETWORK, EUROPE_STATIONS } from '@railroute-ts/europe';
 import './style.css';
 
 type LngLat = [number, number];
 type Preset = { label: string; a: LngLat | string; b: LngLat | string };
-type RegionKey = 'europe' | 'india' | 'north-america' | 'china';
+type RegionKey = 'europe' | 'india' | 'north-america' | 'china' | 'cis' | 'eurasia';
 type RegionData = { network: RailNetwork; stations: Station[] };
 
 // Europe ships in the main bundle; the other data packages are code-split and
@@ -50,6 +50,34 @@ const REGIONS: Record<RegionKey, { label: string; center: LngLat; zoom: number; 
     load: async () => {
       const m = await import('@railroute-ts/north-america');
       return { network: m.NORTH_AMERICA_NETWORK, stations: m.NORTH_AMERICA_STATIONS };
+    },
+  },
+  cis: {
+    label: 'Russia / CIS', center: [70, 55], zoom: 3,
+    presets: [
+      { label: 'Moscow → Vladivostok (Trans-Siberian)', a: [37.66, 55.77], b: [131.88, 43.11] },
+      { label: 'Moscow → Almaty', a: [37.66, 55.77], b: [76.94, 43.24] },
+      { label: 'St Petersburg → Tashkent', a: [30.36, 59.93], b: [69.28, 41.3] },
+    ],
+    load: async () => {
+      const m = await import('@railroute-ts/cis');
+      return { network: m.CIS_NETWORK, stations: m.CIS_STATIONS };
+    },
+  },
+  eurasia: {
+    label: 'Eurasia (China + CIS + Europe)', center: [60, 48], zoom: 2.6,
+    presets: [
+      { label: 'Chongqing → Duisburg (land bridge)', a: [106.55, 29.56], b: [6.78, 51.43] },
+      { label: 'Beijing → Moscow (Trans-Mongolian)', a: [116.4, 39.9], b: [37.66, 55.77] },
+      { label: 'Xi\'an → Hamburg', a: [108.94, 34.34], b: [10.0, 53.55] },
+      { label: 'Almaty → Warsaw', a: [76.94, 43.24], b: [21.0, 52.23] },
+    ],
+    load: async () => {
+      const [cn, cis] = await Promise.all([import('@railroute-ts/china'), import('@railroute-ts/cis')]);
+      return {
+        network: mergeNetworks([cn.CHINA_NETWORK, cis.CIS_NETWORK, EUROPE_NETWORK]),
+        stations: [...cn.CHINA_STATIONS, ...cis.CIS_STATIONS, ...EUROPE_STATIONS],
+      };
     },
   },
   china: {

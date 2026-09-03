@@ -6,8 +6,11 @@
   edges whose properties match
 - stitches train-ferry ways (route=ferry + railway=ferry) into the network
   by connecting their endpoints to the nearest rail node
-Usage: build-network.py RAW.json OUT.json [FERRIES.json|-] [regions/NAME.json]
+Usage: build-network.py RAW.json OUT.json [FERRIES.json|-] [regions/NAME.json] [CANDIDATES.json]
 The optional region config adds a `metadata` block (source, license, bbox…).
+CANDIDATES.json (from fetch-candidates.py: railway=rail ways with no usage/service)
+are admitted only where a connected chain of them joins two different mainline
+components — i.e. it closes an OSM tagging gap. Everything else in it is ignored.
 """
 import json, math, sys, datetime
 from collections import defaultdict
@@ -15,7 +18,8 @@ sys.setrecursionlimit(100000)
 
 SRC, OUT = sys.argv[1], sys.argv[2]
 FERRIES = sys.argv[3] if len(sys.argv) > 3 and sys.argv[3] != '-' else None
-REGION = json.load(open(sys.argv[4])) if len(sys.argv) > 4 else None
+REGION = json.load(open(sys.argv[4])) if len(sys.argv) > 4 and sys.argv[4] != '-' else None
+CANDIDATES = sys.argv[5] if len(sys.argv) > 5 else None
 
 def dist_km(a, b):
     dx = (b[0]-a[0]) * math.cos(math.radians((a[1]+b[1])/2)) * 111.32
@@ -105,6 +109,74 @@ if FERRIES:
         edges.append((fa, fb, coords, None, None, True))
         stitched += 1
     print(f"ferries stitched: {stitched}")
+
+# ---- candidate gap-fillers (untagged mainline) ---------------------------------
+# A chain of untagged railway=rail ways is admitted only if it touches (shares a
+# node id with, or ends within 50 m of) two DIFFERENT mainline components.
+if CANDIDATES:
+    cd = json.load(open(CANDIDATES))
+    cways = [w for w in cd['elements'] if w.get('geometry') and w.get('nodes')]
+    # mainline components by node id (pre-stitch; touching pieces get merged later anyway)
+    madj = defaultdict(set)
+    for a, b, *_ in edges: madj[a].add(b); madj[b].add(a)
+    mcomp = {}
+    for s0 in madj:
+        if s0 in mcomp: continue
+        st = [s0]; cid = s0
+        while st:
+            u = st.pop()
+            if u in mcomp: continue
+            mcomp[u] = cid; st.extend(madj[u])
+    # coordinate index of mainline nodes for the "within 50 m" case
+    mcoord = {}
+    for a, b, coords, *_ in edges: mcoord[a] = coords[0]; mcoord[b] = coords[-1]
+    ccell = 0.05 / 111.32
+    mgrid2 = defaultdict(list)
+    for n, c in mcoord.items(): mgrid2[(int(c[0] / ccell), int(c[1] / ccell))].append(n)
+    def touching_main(nid, c):
+        if nid in mcomp: return mcomp[nid]
+        gx, gy = int(c[0] / ccell), int(c[1] / ccell)
+        for dx in (-1, 0, 1):
+            for dy in (-1, 0, 1):
+                for m in mgrid2.get((gx + dx, gy + dy), ()):
+                    if dist_km(c, mcoord[m]) <= 0.05: return mcomp.get(m)
+        return None
+    # candidate chains (connected via shared node ids among candidates)
+    cadj = defaultdict(set); cnode_coord = {}
+    for w in cways:
+        ns = w['nodes']
+        for a, b in zip(ns, ns[1:]): cadj[a].add(b); cadj[b].add(a)
+        for n, g in zip(ns, w['geometry']): cnode_coord[n] = [round(g['lon'], 4), round(g['lat'], 4)]
+    cseen = {}; chains = []
+    for s0 in cadj:
+        if s0 in cseen: continue
+        st = [s0]; chain = set()
+        while st:
+            u = st.pop()
+            if u in cseen: continue
+            cseen[u] = len(chains); chain.add(u); st.extend(cadj[u])
+        chains.append(chain)
+    keep_chain = set()
+    for i, chain in enumerate(chains):
+        touched = set()
+        for n in chain:
+            t = touching_main(n, cnode_coord[n])
+            if t is not None: touched.add(t)
+            if len(touched) >= 2: keep_chain.add(i); break
+    admitted = [w for w in cways if cseen.get(w['nodes'][0]) in keep_chain]
+    print(f"candidates: {len(cways)} untagged ways in {len(chains)} chains; admitted {len(admitted)} ways from {len(keep_chain)} gap-closing chains")
+    for w in admitted:
+        for n in w['nodes']: use[n] += 1
+        use[w['nodes'][0]] += 1; use[w['nodes'][-1]] += 1
+    for w in admitted:
+        gauge, elec = way_props(w.get('tags', {}))
+        seg_n, seg_c = [], []
+        for nid, g in zip(w['nodes'], w['geometry']):
+            c = [round(g['lon'], 4), round(g['lat'], 4)]
+            seg_n.append(nid); seg_c.append(c)
+            if use[nid] > 1 and len(seg_n) > 1:
+                edges.append((seg_n[0], seg_n[-1], seg_c, gauge, elec, False)); seg_n, seg_c = [nid], [c]
+        if len(seg_n) > 1: edges.append((seg_n[0], seg_n[-1], seg_c, gauge, elec, False))
 
 # ---- stitch tagging gaps ------------------------------------------------------
 # OSM mainline is frequently broken into pieces that touch (or nearly touch)

@@ -1,0 +1,81 @@
+{
+  "name": "cis",
+  "source": "overpass",
+  "license": "ODbL-1.0 (\u00a9 OpenStreetMap contributors)",
+  "_note": "Former USSR (minus the Baltics, which are in europe) scoped by country so neighbours' fragments stay in their own packs. Russia is tiled because a single area query times out.",
+  "way_filter": "[\"railway\"=\"rail\"][\"usage\"=\"main\"]",
+  "ferries": true,
+  "stations": {
+    "code_tag": "name:en",
+    "extra_filter": "[\"railway\"=\"station\"][\"name:en\"]"
+  },
+  "areas": {
+    "RU": [
+      [
+        41,
+        27,
+        56,
+        60
+      ],
+      [
+        56,
+        27,
+        72,
+        60
+      ],
+      [
+        41,
+        60,
+        56,
+        90
+      ],
+      [
+        56,
+        60,
+        72,
+        90
+      ],
+      [
+        41,
+        90,
+        56,
+        120
+      ],
+      [
+        56,
+        90,
+        72,
+        120
+      ],
+      [
+        41,
+        120,
+        56,
+        180
+      ],
+      [
+        56,
+        120,
+        72,
+        180
+      ]
+    ],
+    "KZ": null,
+    "BY": null,
+    "UA": null,
+    "MD": null,
+    "GE": null,
+    "AM": null,
+    "AZ": null,
+    "UZ": null,
+    "KG": null,
+    "TJ": null,
+    "TM": null
+  },
+  "bbox": [
+    35,
+    22,
+    72,
+    180
+  ]
+}

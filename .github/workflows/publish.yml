@@ -25,6 +25,7 @@ jobs:
           - packages/india
           - packages/north-america
           - packages/china
+          - packages/cis
           - examples/mcp-server
     steps:
       - uses: actions/checkout@v4

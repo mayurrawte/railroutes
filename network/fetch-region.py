@@ -36,10 +36,27 @@ def query(q, out, tries=6):
         time.sleep(60)
     sys.exit(f"giving up on {out}")
 
-for t in cfg["tiles"]:
-    bbox = ",".join(str(x) for x in t)
-    out = tiles_dir / ("tile_" + bbox.replace(",", "_").replace("-", "m") + ".json")
-    query(f'[out:json][timeout:900][bbox:{bbox}];way{cfg["way_filter"]};out geom;', out)
+# Two ways to scope a region:
+#   "tiles": plain bbox tiles (everything inside the box, whatever country)
+#   "areas": {"RU": [[lat0,lon0,lat1,lon1], ...] | null}  — country-scoped via
+#            ISO3166-1 area filter, optionally tiled for big countries. Keeps a
+#            neighbour's fragments out of this pack (they belong to another pack).
+jobs = []
+for t in cfg.get("tiles", []):
+    jobs.append((None, t))
+for iso, tiles in (cfg.get("areas") or {}).items():
+    for t in (tiles or [None]):
+        jobs.append((iso, t))
+for iso, t in jobs:
+    bbox = ",".join(str(x) for x in t) if t else None
+    tag = (f"{iso}_" if iso else "") + (bbox.replace(",", "_").replace("-", "m") if bbox else "all")
+    out = tiles_dir / f"tile_{tag}.json"
+    hdr = f'[out:json][timeout:900]' + (f'[bbox:{bbox}]' if bbox else '')
+    if iso:
+        q = f'{hdr};area["ISO3166-1"="{iso}"]["admin_level"="2"]->.a;way{cfg["way_filter"]}(area.a);out geom;'
+    else:
+        q = f'{hdr};way{cfg["way_filter"]};out geom;'
+    query(q, out)
     time.sleep(30)
 
 # merge tiles, dedupe ways by id (a way crossing a tile edge appears twice)
@@ -52,8 +69,11 @@ json.dump({"elements": elements}, open(f"{name}-raw.json", "w"))
 print(f"merged {len(elements)} ways -> {name}-raw.json")
 
 # stations (one query for the whole region bbox — points are small)
-lat0 = min(t[0] for t in cfg["tiles"]); lon0 = min(t[1] for t in cfg["tiles"])
-lat1 = max(t[2] for t in cfg["tiles"]); lon1 = max(t[3] for t in cfg["tiles"])
+all_tiles = list(cfg.get("tiles", [])) + [t for ts in (cfg.get("areas") or {}).values() for t in (ts or [])]
+if cfg.get("bbox"): lat0, lon0, lat1, lon1 = cfg["bbox"]
+else:
+    lat0 = min(t[0] for t in all_tiles); lon0 = min(t[1] for t in all_tiles)
+    lat1 = max(t[2] for t in all_tiles); lon1 = max(t[3] for t in all_tiles)
 st = cfg.get("stations")
 if st:
     flt = st.get("extra_filter") or f'["railway"="station"]["{st["code_tag"]}"]'

@@ -1,0 +1,19 @@
+{
+  "name": "railroute-multimodal-examples",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "description": "Door-to-door freight distance examples: searoute-ts (sea) + railroute-ts (rail).",
+  "scripts": {
+    "start": "node shanghai-rotterdam-duisburg.mjs && node mundra-delhi-icd.mjs && node la-longbeach-chicago.mjs && node chongqing-duisburg-landbridge.mjs"
+  },
+  "dependencies": {
+    "@railroute-ts/china": "^2026.9.1",
+    "@railroute-ts/cis": "^2026.9.0",
+    "@railroute-ts/europe": "^2026.9.0",
+    "@railroute-ts/india": "^2026.9.0",
+    "@railroute-ts/north-america": "^2026.9.1",
+    "railroute-ts": "^0.2.0",
+    "searoute-ts": "^2.3.0"
+  }
+}

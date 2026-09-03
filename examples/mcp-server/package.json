@@ -1,6 +1,6 @@
 {
   "name": "@railroute-ts/mcp",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Model Context Protocol server exposing railroute-ts rail-route tools (rail_route, rail_route_alternatives, rail_station_search) for Europe and India to AI agents.",
   "type": "module",
   "bin": {
@@ -37,6 +37,7 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
     "@railroute-ts/china": "^2026.9.1",
+    "@railroute-ts/cis": "^2026.9.0",
     "@railroute-ts/europe": "^2026.9.0",
     "@railroute-ts/india": "^2026.9.0",
     "@railroute-ts/north-america": "^2026.9.1",

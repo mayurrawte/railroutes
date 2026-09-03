@@ -21,7 +21,8 @@ npm install railroute-ts @railroute-ts/europe    # core + the region(s) you need
 | [`@railroute-ts/europe`](https://www.npmjs.com/package/@railroute-ts/europe) | Europe, 35–72N 10W–32E (OSM) | 12,886 with UIC codes | 1.46 MB |
 | [`@railroute-ts/india`](https://www.npmjs.com/package/@railroute-ts/india) | Indian Railways mainline (OSM) | 8,476 with IR codes (NDLS, CSMT …) | 0.28 MB |
 | [`@railroute-ts/north-america`](https://www.npmjs.com/package/@railroute-ts/north-america) | US + Canada + Mexico (FRA/BTS NARN, public domain) | 638 Amtrak/VIA stations by name | 0.95 MB |
-| [`@railroute-ts/china`](https://www.npmjs.com/package/@railroute-ts/china) | Mainland China incl. HSR (OSM) | 9,326 stations by English name | 0.83 MB |
+| [`@railroute-ts/china`](https://www.npmjs.com/package/@railroute-ts/china) | Mainland China + Mongolia incl. HSR (OSM) | 9,326 stations by English name | 0.83 MB |
+| [`@railroute-ts/cis`](https://www.npmjs.com/package/@railroute-ts/cis) | Russia, Kazakhstan, Belarus, Ukraine, Caucasus, Central Asia (OSM, 1520 mm) | by English name | — |
 
 The core package is ~0.4 MB compressed (almost all of it the Rhine-Alpine
 corridor sample network); install the regions you route in. Data packages are versioned by
@@ -208,6 +209,25 @@ railRoute([0, 0], 'Warsaw Central', { network: EUROPE_NETWORK, maxSnapDistanceKm
 - Unknown station id → `Error('Unknown station: …')`
 - Point farther than `maxSnapDistanceKm` from the network → `SnapFailedError` (`.endpoint`, `.distanceKm`)
 - No path between the snapped points → `NoRouteError`
+
+## Routing across regions (`mergeNetworks`)
+
+Data packages are built from the same OSM source with non-overlapping boxes, so
+they can be combined into one graph. `mergeNetworks` concatenates them and
+bridges border dead ends within 2 km:
+
+```ts
+import { railRoute, mergeNetworks } from 'railroute-ts';
+import { CHINA_NETWORK } from '@railroute-ts/china';
+import { CIS_NETWORK } from '@railroute-ts/cis';
+import { EUROPE_NETWORK } from '@railroute-ts/europe';
+
+const EURASIA = mergeNetworks([CHINA_NETWORK, CIS_NETWORK, EUROPE_NETWORK]);
+railRoute([106.55, 29.56], [6.78, 51.43], { network: EURASIA, gaugeChangePenaltyKm: 300 });
+// Chongqing → Duisburg, the China–Europe land bridge: ~11,000 km, gaugeChanges: 2
+```
+
+The merged graph is built once and cached like any other network.
 
 ## Loading networks from a CDN instead of installing
 
