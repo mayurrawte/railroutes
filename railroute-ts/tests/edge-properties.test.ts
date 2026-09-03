@@ -45,3 +45,25 @@ describe('edge properties', () => {
     expect(r.properties.ferryKm).toBeGreaterThan(100); // the E–F ferry leg ≈ 111 km
   });
 });
+
+describe('gauge equivalence', () => {
+  // OSM Russia mixes gauge=1520 and gauge=1524 for the same track; that is not a gauge break.
+  const MIXED: RailNetwork = {
+    type: 'FeatureCollection',
+    features: [
+      { type: 'Feature', properties: { gauge: '1520' }, geometry: { type: 'LineString', coordinates: [[0, 0], [1, 0]] } },
+      { type: 'Feature', properties: { gauge: '1524' }, geometry: { type: 'LineString', coordinates: [[1, 0], [2, 0]] } },
+      { type: 'Feature', properties: { gauge: '1520' }, geometry: { type: 'LineString', coordinates: [[2, 0], [3, 0]] } },
+      { type: 'Feature', properties: { gauge: '1435' }, geometry: { type: 'LineString', coordinates: [[3, 0], [4, 0]] } },
+    ],
+  };
+  it('does not count 1520 <-> 1524 as a gauge change, but does count 1520 -> 1435', () => {
+    const r = railRoute([0, 0], [4, 0], { network: MIXED });
+    expect(r.properties.gaugeChanges).toBe(1);
+  });
+  it('applies the same equivalence to the gauge-change penalty', () => {
+    const noPenalty = railRoute([0, 0], [3, 0], { network: MIXED });
+    const penalised = railRoute([0, 0], [3, 0], { network: MIXED, gaugeChangePenaltyKm: 500 });
+    expect(penalised.properties.length).toBeCloseTo(noPenalty.properties.length, 3);
+  });
+});

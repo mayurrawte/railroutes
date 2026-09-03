@@ -161,7 +161,7 @@ function dijkstra(
       if (c.noFerries && e.ferry) continue;
       const eg = e.gauge ?? ug; // untagged edges inherit, never break gauge
       let cost = e.km;
-      if (penalty && ug && e.gauge && e.gauge !== ug) cost += penalty;
+      if (penalty && ug && e.gauge && !sameGauge(e.gauge, ug)) cost += penalty;
       const vs = sk(e.to, eg);
       const nd = du + cost;
       if (nd < (dist.get(vs) ?? Infinity)) {
@@ -214,6 +214,17 @@ export function resolveStation(id: string): Position {
 
 // ---- routing API ----
 
+/**
+ * Gauges within 5 mm are the same gauge: OSM tags Russian/CIS track as both 1520
+ * and 1524, and Cape gauge as 1067/1065; neither is a physical gauge break.
+ */
+export function sameGauge(a: string | undefined, b: string | undefined): boolean {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  const na = Number(a), nb = Number(b);
+  return Number.isFinite(na) && Number.isFinite(nb) && Math.abs(na - nb) <= 5;
+}
+
 function constraintsOf(options: RailRouteOptions): RouteConstraints {
   return {
     electrifiedOnly: options.electrifiedOnly,
@@ -237,7 +248,7 @@ function decorate(
     const e = (g.adj.get(path[i]) ?? []).find((x) => x.to === path[i + 1]);
     if (!e) continue;
     if (e.gauge) {
-      if (lastGauge && e.gauge !== lastGauge) gaugeChanges++;
+      if (lastGauge && !sameGauge(e.gauge, lastGauge)) gaugeChanges++;
       lastGauge = e.gauge;
     }
     if (e.ferry) ferryKm += e.km;
