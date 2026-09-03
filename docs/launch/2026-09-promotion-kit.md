@@ -76,11 +76,13 @@ https://dev.to/max_kleiner_9d12e786b3ecc/the-open-railway-map-api-13fg
 > Eurostat network back to you at $1,199/month). The network is open data, so I put the
 > routing in two free libraries and now they connect:
 >
-> Shanghai → Rotterdam by sea: 19,753 km via Suez (or 23,800 km round the Cape if you block
-> Suez/Bab-el-Mandeb), ~4,400 t CO₂e for a Panamax on a rough GLEC-style factor.
-> Rotterdam → Genoa by rail: 1,180 km via the Gotthard, 0 gauge changes.
-> Same for Mundra → Delhi ICD (Indian Railways station codes) and LA/Long Beach → Chicago
-> (FRA rail network). Runs in a spreadsheet script, a browser tab, or an AI agent (MCP).
+> Shanghai → Rotterdam by sea: 19,753 km via Suez (25,315 km if you block Suez/Bab-el-Mandeb —
+> the solver goes round via Panama), ~4,400 t CO₂e for a Panamax on a rough GLEC-style factor.
+> Rotterdam → Duisburg by rail: 212 km. Door to door 19,965 km.
+> The same box on the China–Europe **rail land bridge**: Chongqing → Duisburg 10,745 km,
+> two gauge changes (1435 → 1520 at Dostyk, back at Brest) — half the distance of the sea route.
+> Same for Jebel Ali → Mundra → Tughlakabad ICD (2,845 km, Indian Railways station codes) and
+> Shanghai → LA → Chicago (14,302 km, FRA rail network). Scripts: github.com/mayurrawte/railroutes/tree/main/examples/multimodal Runs in a spreadsheet script, a browser tab, or an AI agent (MCP).
 >
 > [code snippet from README multimodal section] · repo links
 >
@@ -94,8 +96,9 @@ https://dev.to/max_kleiner_9d12e786b3ecc/the-open-railway-map-api-13fg
 > distances at Shipthis without paying per call. It is at ~20k downloads a month now.
 >
 > This month I added the missing half: rail. railroute-ts routes over OpenStreetMap and the
-> US FRA network — Europe, India, North America, China — with station codes as inputs
-> (NDLS → CSMT = 1,434 km). Sea leg + rail leg = door-to-door distance and a defensible
+> US FRA network — Europe, India, North America, China, Russia/CIS — with station codes as
+> inputs (NDLS → CSMT = 1,434 km). Merge the packages and Chongqing → Duisburg by rail is
+> 10,745 km with two gauge changes, against 21,931 km by sea. Sea leg + rail leg = door-to-door distance and a defensible
 > CO₂e number, all open source, all offline.
 >
 > Building it taught me something about OSM: India's mainline is ~500 disconnected pieces

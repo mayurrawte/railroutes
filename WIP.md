@@ -3,7 +3,7 @@
 _Updated: 2026-09-02_
 
 ## Current state
-- **2026-09-03 in progress — CIS pack + mergeNetworks + multimodal examples (uncommitted until CIS data lands)**:
+- **2026-09-03 SHIPPED (v0.2.1 release)**: railroute-ts 0.2.1 (sameGauge ±5 mm), @railroute-ts/cis 2026.9.0, @railroute-ts/mcp 0.2.0 all on npm; #14 closed. Details:
   `mergeNetworks(networks, {bridgeKm})` in core (tests green) joins packs and bridges border dead-ends.
   `packages/cis` = @railroute-ts/cis (RU tiled ×8 + KZ BY UA MD GE AM AZ UZ KG TJ TM via Overpass
   `area["ISO3166-1"=..]` — region config key `areas`; plain `tiles` still supported). First bbox-based build
