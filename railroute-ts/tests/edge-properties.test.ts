@@ -46,6 +46,35 @@ describe('edge properties', () => {
   });
 });
 
+// H(0,0) — I(2,0): high-speed line, direct
+// H(0,0) — J(1,0.9) — I(2,0): conventional, longer
+// I(2,0) — K(3,0): high-speed only
+const HSR: RailNetwork = {
+  type: 'FeatureCollection',
+  features: [
+    { type: 'Feature', properties: { highspeed: true }, geometry: { type: 'LineString', coordinates: [[0, 0], [2, 0]] } },
+    { type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: [[0, 0], [1, 0.9], [2, 0]] } },
+    { type: 'Feature', properties: { highspeed: true }, geometry: { type: 'LineString', coordinates: [[2, 0], [3, 0]] } },
+  ],
+};
+
+describe('highSpeed option', () => {
+  it('allows high-speed edges by default', () => {
+    const r = railRoute([0, 0], [2, 0], { network: HSR });
+    expect(r.properties.length).toBeLessThan(230);
+  });
+
+  it("highSpeed: 'exclude' stays on conventional track even when longer", () => {
+    const r = railRoute([0, 0], [2, 0], { network: HSR, highSpeed: 'exclude' });
+    expect(r.properties.length).toBeGreaterThan(290);
+    expect(r.geometry.coordinates).toContainEqual([1, 0.9]);
+  });
+
+  it("highSpeed: 'exclude' throws when only high-speed track connects", () => {
+    expect(() => railRoute([2, 0], [3, 0], { network: HSR, highSpeed: 'exclude' })).toThrow(NoRouteError);
+  });
+});
+
 describe('gauge equivalence', () => {
   // OSM Russia mixes gauge=1520 and gauge=1524 for the same track; that is not a gauge break.
   const MIXED: RailNetwork = {

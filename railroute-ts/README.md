@@ -182,11 +182,12 @@ route detours (Shanghai–Chengdu +13 %, Shenzhen–Wuhan +37 % today). Standard
 gauge with real `electrified` tags. Stations: 9,326 heavy-rail stations by English
 name (`CHINA_STATIONS`, e.g. `'Shanghai-Hongqiao'`, `'Beijing'`).
 
-### Gauge, electrification, ferries
+### Gauge, electrification, ferries, high speed
 
 ```ts
 railRoute(a, b, { network: EUROPE_NETWORK, electrifiedOnly: true });      // electric traction only
 railRoute(a, b, { network: EUROPE_NETWORK, ferries: false });             // no train ferries
+railRoute(a, b, { network: EUROPE_NETWORK, highSpeed: 'exclude' });       // freight: stay off high-speed passenger lines
 railRoute(a, b, { network: EUROPE_NETWORK, gaugeChangePenaltyKm: 200 });  // penalize 1435↔1668/1520 breaks
 // results carry properties.gaugeChanges and properties.ferryKm
 // gauges within 5 mm count as the same (OSM mixes 1520/1524 on Russian track)

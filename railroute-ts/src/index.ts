@@ -36,6 +36,7 @@ interface Edge {
   gauge?: string;
   electrified?: boolean;
   ferry?: boolean;
+  highspeed?: boolean;
 }
 
 interface Graph {
@@ -55,6 +56,7 @@ function buildGraph(network: RailNetwork): Graph {
     const gauge = typeof props.gauge === 'string' ? props.gauge : undefined;
     const electrified = typeof props.electrified === 'boolean' ? props.electrified : undefined;
     const ferry = props.ferry === true ? true : undefined;
+    const highspeed = props.highspeed === true ? true : undefined;
     const c = f.geometry.coordinates;
     for (let i = 0; i < c.length - 1; i++) {
       const a = c[i], b = c[i + 1];
@@ -63,8 +65,8 @@ function buildGraph(network: RailNetwork): Graph {
       const km = distKm(a, b);
       if (!adj.has(ka)) adj.set(ka, []);
       if (!adj.has(kb)) adj.set(kb, []);
-      adj.get(ka)!.push({ to: kb, km, gauge, electrified, ferry });
-      adj.get(kb)!.push({ to: ka, km, gauge, electrified, ferry });
+      adj.get(ka)!.push({ to: kb, km, gauge, electrified, ferry, highspeed });
+      adj.get(kb)!.push({ to: ka, km, gauge, electrified, ferry, highspeed });
     }
   }
   const g = { adj, coord };
@@ -130,6 +132,7 @@ interface RouteConstraints {
   banned?: Set<string>;
   electrifiedOnly?: boolean;
   noFerries?: boolean;
+  noHighSpeed?: boolean;
   gaugePenaltyKm?: number;
 }
 
@@ -159,6 +162,7 @@ function dijkstra(
       if (c.banned && c.banned.has(edgeKey(u, e.to))) continue;
       if (c.electrifiedOnly && e.electrified !== true) continue;
       if (c.noFerries && e.ferry) continue;
+      if (c.noHighSpeed && e.highspeed) continue;
       const eg = e.gauge ?? ug; // untagged edges inherit, never break gauge
       let cost = e.km;
       if (penalty && ug && e.gauge && !sameGauge(e.gauge, ug)) cost += penalty;
@@ -229,6 +233,7 @@ function constraintsOf(options: RailRouteOptions): RouteConstraints {
   return {
     electrifiedOnly: options.electrifiedOnly,
     noFerries: options.ferries === false,
+    noHighSpeed: options.highSpeed === 'exclude',
     gaugePenaltyKm: options.gaugeChangePenaltyKm,
   };
 }
