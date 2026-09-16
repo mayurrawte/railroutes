@@ -3,7 +3,7 @@
 [![npm version](https://img.shields.io/npm/v/@railroute-ts/europe.svg?style=flat)](https://www.npmjs.com/package/@railroute-ts/europe)
 
 Europe rail network data for [`railroute-ts`](https://github.com/mayurrawte/railroutes).
-Europe-wide mainline rail (35–72N, 10W–32E) from OpenStreetMap, with gauge, electrification and train-ferry links (Messina, Rostock–Trelleborg). 12,886 stations with UIC codes.
+Europe-wide mainline rail (35–72N, 10W–32E) from OpenStreetMap, with gauge, electrification, high-speed flags and train-ferry links (Messina, Rostock–Trelleborg). 12,886 stations with UIC codes.
 
 ```bash
 npm install railroute-ts @railroute-ts/europe
