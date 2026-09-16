@@ -2,7 +2,7 @@
 """Pipeline v2: raw Overpass ways -> compact edge-level network GeoJSON.
 
 - splits ways at junctions, keeps the giant connected component
-- carries gauge / electrified onto edges; chain contraction only merges
+- carries gauge / electrified / highspeed onto edges; chain contraction only merges
   edges whose properties match
 - stitches train-ferry ways (route=ferry + railway=ferry) into the network
   by connecting their endpoints to the nearest rail node
@@ -42,7 +42,8 @@ def way_props(tags):
     gauge = (tags.get('gauge') or '').split(';')[0].strip() or None
     e = tags.get('electrified')
     electrified = None if e is None else (e not in ('no', 'none'))
-    return gauge, electrified
+    highspeed = tags.get('highspeed') == 'yes'
+    return gauge, electrified, highspeed
 
 def way_is_ferry(tags):
     # NARN NET='F' arcs arrive pre-stitched with ferry=yes (no separate ferries file)
@@ -56,20 +57,20 @@ for w in ways:
     for n in w['nodes']: use[n] += 1
     use[w['nodes'][0]] += 1; use[w['nodes'][-1]] += 1
 
-# edges: (a, b, coords, gauge, electrified)
+# edges: (a, b, coords, gauge, electrified, highspeed[, ferry])
 edges = []
 for w in ways:
-    gauge, elec = way_props(w.get('tags', {}))
+    gauge, elec, hs = way_props(w.get('tags', {}))
     fer = way_is_ferry(w.get('tags', {}))
     seg_n, seg_c = [], []
     for nid, g in zip(w['nodes'], w['geometry']):
         c = [round(g['lon'],4), round(g['lat'],4)]
         seg_n.append(nid); seg_c.append(c)
         if use[nid] > 1 and len(seg_n) > 1:
-            edges.append((seg_n[0], seg_n[-1], seg_c, gauge, elec, fer))
+            edges.append((seg_n[0], seg_n[-1], seg_c, gauge, elec, hs, fer))
             seg_n, seg_c = [nid], [c]
     if len(seg_n) > 1:
-        edges.append((seg_n[0], seg_n[-1], seg_c, gauge, elec, fer))
+        edges.append((seg_n[0], seg_n[-1], seg_c, gauge, elec, hs, fer))
 
 # train ferries: stitch BEFORE the component filter so islands (Sicily,
 # Scandinavia-via-ferry) join the main component through the ferry edges.
@@ -105,8 +106,8 @@ if FERRIES:
         fa, fb = f"ferry{fnum}a", f"ferry{fnum}b"; fnum += 1
         # connectors rail-node -> berth (plain track), then the ferry edge itself
         for fn, (nid, dd, endpoint) in zip((fa, fb), ends):
-            edges.append((nid, fn, [all_coord[nid], endpoint], None, None))
-        edges.append((fa, fb, coords, None, None, True))
+            edges.append((nid, fn, [all_coord[nid], endpoint], None, None, False))
+        edges.append((fa, fb, coords, None, None, False, True))
         stitched += 1
     print(f"ferries stitched: {stitched}")
 
@@ -169,14 +170,14 @@ if CANDIDATES:
         for n in w['nodes']: use[n] += 1
         use[w['nodes'][0]] += 1; use[w['nodes'][-1]] += 1
     for w in admitted:
-        gauge, elec = way_props(w.get('tags', {}))
+        gauge, elec, hs = way_props(w.get('tags', {}))
         seg_n, seg_c = [], []
         for nid, g in zip(w['nodes'], w['geometry']):
             c = [round(g['lon'], 4), round(g['lat'], 4)]
             seg_n.append(nid); seg_c.append(c)
             if use[nid] > 1 and len(seg_n) > 1:
-                edges.append((seg_n[0], seg_n[-1], seg_c, gauge, elec, False)); seg_n, seg_c = [nid], [c]
-        if len(seg_n) > 1: edges.append((seg_n[0], seg_n[-1], seg_c, gauge, elec, False))
+                edges.append((seg_n[0], seg_n[-1], seg_c, gauge, elec, hs, False)); seg_n, seg_c = [nid], [c]
+        if len(seg_n) > 1: edges.append((seg_n[0], seg_n[-1], seg_c, gauge, elec, hs, False))
 
 # ---- stitch tagging gaps ------------------------------------------------------
 # OSM mainline is frequently broken into pieces that touch (or nearly touch)
@@ -284,7 +285,7 @@ while True:
             if dd <= MERGE_KM:
                 remap[n] = m            # (near-)coincident: fuse the nodes, a 0 km edge would be dropped at emit
             else:
-                new_edges.append((n, m, [node_coord[n], node_coord[m]], None, None))
+                new_edges.append((n, m, [node_coord[n], node_coord[m]], None, None, False))
     if not new_edges and not remap: break
     if remap:
         edges = [rewire(e, remap.get(e[0], e[0]), remap.get(e[1], e[1])) for e in edges
@@ -307,8 +308,8 @@ anchors = [n for n in deg if deg[n] != 2]
 for start in anchors:
     for ei in by_node[start]:
         if used[ei]: continue
-        a, b, coords, gauge, elec = kept[ei][:5]
-        if len(kept[ei]) > 5 and kept[ei][5]: continue
+        a, b, coords, gauge, elec, hs = kept[ei][:6]
+        if len(kept[ei]) > 6 and kept[ei][6]: continue
         used[ei] = True
         cur = b if a == start else a
         chain = coords if a == start else coords[::-1]
@@ -316,35 +317,36 @@ for start in anchors:
             nxt = [j for j in by_node[cur] if not used[j]]
             if not nxt: break
             j = nxt[0]
-            na, nb, nc, ng, ne = kept[j][:5]
-            if len(kept[j]) > 5 and kept[j][5]: break
-            if (ng, ne) != (gauge, elec): break  # property change: keep edges separate
+            na, nb, nc, ng, ne, nh = kept[j][:6]
+            if len(kept[j]) > 6 and kept[j][6]: break
+            if (ng, ne, nh) != (gauge, elec, hs): break  # property change: keep edges separate
             used[j] = True
             seg = nc if na == cur else nc[::-1]
             chain = chain + seg[1:]
             cur = nb if na == cur else na
-        contracted.append((start, cur, chain, gauge, elec))
+        contracted.append((start, cur, chain, gauge, elec, hs))
 for i, e in enumerate(kept):
     if not used[i]:
         contracted.append(e)
 kept = contracted
 
 feats = []
-def emit(coords, gauge, elec, ferry=False):
+def emit(coords, gauge, elec, hs, ferry=False):
     simp = rdp(coords, 0.001)
     km = sum(dist_km(simp[i], simp[i+1]) for i in range(len(simp)-1))
     if km == 0: return
     props = {"km": round(km, 3)}
     if gauge: props["gauge"] = gauge
     if elec is not None: props["electrified"] = elec
+    if hs: props["highspeed"] = True
     if ferry: props["ferry"] = True
     feats.append({"type":"Feature","properties":props,
                   "geometry":{"type":"LineString","coordinates":simp}})
 
 for e in kept:
-    a, b, coords, gauge, elec = e[:5]
-    ferry = len(e) > 5 and e[5]
-    emit(coords, gauge, elec, ferry=ferry)
+    a, b, coords, gauge, elec, hs = e[:6]
+    ferry = len(e) > 6 and e[6]
+    emit(coords, gauge, elec, hs, ferry=ferry)
 
 # sanity: the emitted network must be a single connected component
 oadj = defaultdict(set)
@@ -374,4 +376,5 @@ if REGION:
 out = json.dumps(fc, separators=(',',':'))
 open(OUT,'w').write(out)
 tagged = sum(1 for f in feats if 'gauge' in f['properties'])
-print(f"edges: {len(feats):,} ({tagged:,} with gauge); size: {len(out)/1e6:.2f} MB")
+hsr = sum(1 for f in feats if 'highspeed' in f['properties'])
+print(f"edges: {len(feats):,} ({tagged:,} with gauge, {hsr:,} highspeed); size: {len(out)/1e6:.2f} MB")
