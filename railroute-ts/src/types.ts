@@ -16,7 +16,7 @@ export interface RailNetwork {
   metadata?: RailNetworkMetadata;
   features: Array<{
     type: 'Feature';
-    properties: Record<string, unknown> & { gauge?: string; electrified?: boolean; ferry?: boolean };
+    properties: Record<string, unknown> & { gauge?: string; electrified?: boolean; ferry?: boolean; highspeed?: boolean };
     geometry: { type: 'LineString'; coordinates: Position[] };
   }>;
 }
@@ -28,6 +28,8 @@ export interface RailRouteOptions {
   electrifiedOnly?: boolean;
   /** Set false to exclude train-ferry edges. Default: allowed. */
   ferries?: boolean;
+  /** 'exclude' keeps the route off high-speed passenger lines (OSM highspeed=yes). Default: 'allow'. */
+  highSpeed?: 'allow' | 'exclude';
   /** Extra km added each time the route crosses a gauge break (e.g. 1435<->1668). */
   gaugeChangePenaltyKm?: number;
   /**

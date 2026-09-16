@@ -1,7 +1,7 @@
 {
   "name": "@railroute-ts/europe",
-  "version": "2026.9.0",
-  "description": "Europe rail network data for railroute-ts — Europe-wide mainline rail (35–72N, 10W–32E) from OpenStreetMap, with gauge, electrification and train-ferry links (Messina, Rostock–Trelleborg). 12,886 stations with UIC codes.",
+  "version": "2026.9.1",
+  "description": "Europe rail network data for railroute-ts — Europe-wide mainline rail (35–72N, 10W–32E) from OpenStreetMap, with gauge, electrification, high-speed flags and train-ferry links (Messina, Rostock–Trelleborg). 12,886 stations with UIC codes.",
   "type": "module",
   "main": "./dist/src/index.js",
   "types": "./dist/src/index.d.ts",

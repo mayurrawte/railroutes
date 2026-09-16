@@ -23,6 +23,14 @@ describe('China network', () => {
     expect(r.properties.length).toBeLessThan(4800);
   }, 30_000);
 
+  it("Shanghai -> Beijing with highSpeed: 'exclude' leaves the Jinghu HSR for the conventional line (~1,463 km)", async () => {
+    const { CHINA_NETWORK } = await import('../src/index.js');
+    const hsr = railRoute([121.47, 31.23], [116.4, 39.9], { network: CHINA_NETWORK });
+    const conv = railRoute([121.47, 31.23], [116.4, 39.9], { network: CHINA_NETWORK, highSpeed: 'exclude' });
+    expect(conv.properties.length).toBeGreaterThan(hsr.properties.length + 50);
+    expect(conv.properties.length).toBeLessThan(1700);
+  }, 30_000);
+
   it('carries ODbL metadata with a China-sized bbox', async () => {
     const { CHINA_NETWORK } = await import('../src/index.js');
     const meta = CHINA_NETWORK.metadata!;
